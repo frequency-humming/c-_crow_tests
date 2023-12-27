@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <form id="myForm" action="/send" method="POST">
+      <label for="URL">Add Endpoint:</label><br>
+      <input type="text" id="URL" name="URL"><br>
+      <input type="submit" value="Submit">
+    </form> 
+    <div id="result">
+      <!-- Traceroute results will be displayed here -->
+    </div>
+
+    <script>
+      document.getElementById('myForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const URL = document.getElementById('URL').value;
+
+        fetch('/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain'
+          },
+          body: URL
+        })
+        .then(response => {
+          if(response.status === 202) {
+            // Define a function to check for the result periodically if accepted
+            function checkForResult() {
+              fetch('/result')
+                .then(response => response.text())
+                .then(data => {
+                  if(!data.startsWith("Traceroute result is still pending...")) {
+                    document.getElementById('result').innerHTML = data;
+                    // Stop checking if the result is received
+                  } else {
+                    document.getElementById('result').innerHTML = "Results still pending ...";
+                    // If still pending, check again after some time
+                    setTimeout(checkForResult, 5000);
+                  }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // If there's an error, try checking again after some time
+                    setTimeout(checkForResult, 5000);
+                });
+            }
+            // Start checking for the result
+            checkForResult();
+          }
+        })
+        .catch(error => console.error('Error:', error));
+      });
+    </script>
+  </body>
+</html>
