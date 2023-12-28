@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>System Information</title>
+  </head>
+  <body>
+    <h1>System Information</h1>
+    <p>{{cpuInfo}}</p>
+    <p>{{osInfo}}</p>
+    <p>{{osVersion}}</p>
+    <p>{{hostname}}</p>
+    <p>{{memory}}</p>
+    <p>{{cpuCount}}</p>
+    <p>{{cpuCores}}</p>
+    <p>{{cpuThreads}}</p>
+    <p>{{disk}}</p>
+    <p>{{uptime}}</p>
+    <p>{{cpuUsage}}</p>
+    <p>{{memoryUsage}}</p>
+    <p>{{diskUsage}}</p>
+    <p>{{networkUsage}}</p>
+  <!-- <script>
+          function checkForResult() {
+            fetch('/stats')
+              .then(response => response.text())
+              .then(data => {
+                  document.getElementById('stats').innerHTML = data;
+              })
+              .catch(error => {
+                  console.error('Error:', error);
+              });
+          }
+          checkForResult();
+  </script> -->
+  </body>
+</html>
