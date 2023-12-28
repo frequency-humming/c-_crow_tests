@@ -2,35 +2,25 @@
 <html>
   <head>
     <title>System Information</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   </head>
-  <body>
-    <h1>System Information</h1>
-    <p>{{cpuInfo}}</p>
-    <p>{{osInfo}}</p>
-    <p>{{osVersion}}</p>
-    <p>{{hostname}}</p>
-    <p>{{memory}}</p>
-    <p>{{cpuCount}}</p>
-    <p>{{cpuCores}}</p>
-    <p>{{cpuThreads}}</p>
-    <p>{{disk}}</p>
-    <p>{{uptime}}</p>
-    <p>{{cpuUsage}}</p>
-    <p>{{memoryUsage}}</p>
-    <p>{{diskUsage}}</p>
-    <p>{{networkUsage}}</p>
-  <!-- <script>
-          function checkForResult() {
-            fetch('/stats')
-              .then(response => response.text())
-              .then(data => {
-                  document.getElementById('stats').innerHTML = data;
-              })
-              .catch(error => {
-                  console.error('Error:', error);
-              });
-          }
-          checkForResult();
-  </script> -->
+  <body class="bg-gray-100 font-sans leading-normal tracking-normal">
+    <div class="container mx-auto m-8">
+        <h1 class="text-3xl mb-2 text-gray-700">System Information</h1>
+        <p class="bg-white shadow-md rounded p-4"><strong>CPU Info:</strong> {{cpuInfo}}</p>
+        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>OS:</strong> {{osInfo}}</p>
+        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>OS Version:</strong> {{osVersion}}</p>
+        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Hostname:</strong> {{hostname}}</p>
+        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Memory:</strong> {{memory}}</p>
+        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>CPU Count:</strong> {{cpuCount}}</p>
+        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Physical CPU Cores:</strong> {{cpuCores}}</p>
+        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Logical CPU Threads:</strong> {{cpuThreads}}</p>
+        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Disk:</strong> {{disk}}</p>
+        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Uptime:</strong> {{uptime}}</p>
+        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>CPU Usage:</strong> {{cpuUsage}}</p>
+        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Memory Usage:</strong> {{memoryUsage}}</p>
+        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Disk Usage:</strong> {{diskUsage}}</p>
+        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Network Usage:</strong> {{networkUsage}}</p>
+    </div>
   </body>
 </html>

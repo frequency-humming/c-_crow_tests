@@ -1,5 +1,6 @@
 #include "crow.h"
 #include <array>
+#include <bitset>
 #include <cstdio>
 #include <future>
 #include <iostream>
@@ -7,10 +8,8 @@
 #include <regex>
 #include <stdexcept>
 
-using namespace std;
-
-vector<string> msgs;
-vector<pair<crow::response*, decltype(chrono::steady_clock::now())>> ress;
+std::vector<std::string> msgs;
+std::vector<std::pair<crow::response*, decltype(std::chrono::steady_clock::now())>> ress;
 
 class Stats {
     private:
@@ -28,16 +27,19 @@ class Stats {
         }
 };
 
-std::string execCommand(const char* cmd) {
+std::string execCommand(const char* cmd, std::bitset<1> v) {
     std::array<char, 200> buffer;
     std::string result;
     std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+    bool append = v.test(0);
     if (!pipe) {
         throw std::runtime_error("popen() failed!");
     }
     while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
         result += buffer.data();
-        result += "<br>";
+        if (append) {
+            result += "<br>";
+        }
     }
     return result;
 }
@@ -46,7 +48,7 @@ std::future<std::string> runTracerouteAsync(const std::string& endpoint) {
     return std::async(std::launch::async, [endpoint]() {
         try {
             std::string command = "traceroute -m 10 " + endpoint;
-            return execCommand(command.c_str());
+            return execCommand(command.c_str(), 1);
         } catch (const std::runtime_error& e) {
             std::cerr << "Traceroute Error: " << e.what() << std::endl;
             return "Traceroute failed: " + std::string(e.what());
@@ -56,20 +58,20 @@ std::future<std::string> runTracerouteAsync(const std::string& endpoint) {
 
 std::vector<Stats> getStats() {
     std::vector<Stats> stats;
-    stats.emplace_back("cpuInfo", execCommand("sysctl -n machdep.cpu.brand_string"));
-    stats.emplace_back("osInfo", execCommand("sw_vers -productName"));
-    stats.emplace_back("osVersion", execCommand("sw_vers -productVersion"));
-    stats.emplace_back("hostname", execCommand("hostname"));
-    stats.emplace_back("cpuCount", execCommand("sysctl -n hw.ncpu"));
-    stats.emplace_back("cpuCores", execCommand("sysctl -n hw.physicalcpu"));
-    stats.emplace_back("cpuThreads", execCommand("sysctl -n hw.logicalcpu"));
-    stats.emplace_back("disk", execCommand("df -h"));
-    stats.emplace_back("uptime", execCommand("uptime"));
-    stats.emplace_back("cpuUsage", execCommand("top -l 1 | grep CPU"));
-    stats.emplace_back("memoryUsage", execCommand("top -l 1 | grep PhysMem"));
-    stats.emplace_back("diskUsage", execCommand("top -l 1 | grep Disk"));
-    stats.emplace_back("networkUsage", execCommand("top -l 1 | grep Network"));
-    std::string memory = execCommand("sysctl hw.memsize");
+    stats.emplace_back("cpuInfo", execCommand("sysctl -n machdep.cpu.brand_string", 0));
+    stats.emplace_back("osInfo", execCommand("sw_vers -productName", 0));
+    stats.emplace_back("osVersion", execCommand("sw_vers -productVersion", 0));
+    stats.emplace_back("hostname", execCommand("hostname", 0));
+    stats.emplace_back("cpuCount", execCommand("sysctl -n hw.ncpu", 0));
+    stats.emplace_back("cpuCores", execCommand("sysctl -n hw.physicalcpu", 0));
+    stats.emplace_back("cpuThreads", execCommand("sysctl -n hw.logicalcpu", 0));
+    stats.emplace_back("disk", execCommand("df -h", 0));
+    stats.emplace_back("uptime", execCommand("uptime", 0));
+    stats.emplace_back("cpuUsage", execCommand("top -l 1 | grep CPU", 0));
+    stats.emplace_back("memoryUsage", execCommand("top -l 1 | grep PhysMem", 0));
+    stats.emplace_back("diskUsage", execCommand("top -l 1 | grep Disk", 0));
+    stats.emplace_back("networkUsage", execCommand("top -l 1 | grep Network", 0));
+    std::string memory = execCommand("sysctl hw.memsize", 0);
     std::regex non_digit("[^0-9]");
     std::string only_digits = std::regex_replace(memory, non_digit, "");
     long long number = std::stoll(only_digits) / 1024 / 1024 / 1024;
