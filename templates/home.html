@@ -15,7 +15,11 @@
         <p class="bg-white shadow-md rounded p-4 mt-2"><strong>CPU Count:</strong> {{cpuCount}}</p>
         <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Physical CPU Cores:</strong> {{cpuCores}}</p>
         <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Logical CPU Threads:</strong> {{cpuThreads}}</p>
-        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Disk:</strong> {{disk}}</p>
+        <div class="bg-white shadow-md rounded p-4 mt-2">
+          <p><strong>Disk:</strong></p>
+          {{{disk}}}
+        </div>
+        
         <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Uptime:</strong> {{uptime}}</p>
         <p class="bg-white shadow-md rounded p-4 mt-2"><strong>CPU Usage:</strong> {{cpuUsage}}</p>
         <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Memory Usage:</strong> {{memoryUsage}}</p>

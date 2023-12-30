@@ -19,7 +19,7 @@
                 //"-Wsign-conversion",
                 "-I${workspaceFolder}",
                 "-I./Libraries/Crow/include/",
-                "${file}",
+                "${fileDirname}/**.cpp",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}"
             ],
