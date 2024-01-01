@@ -19,12 +19,44 @@
           <p><strong>Disk:</strong></p>
           {{{disk}}}
         </div>
-        
         <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Uptime:</strong> {{uptime}}</p>
-        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>CPU Usage:</strong> {{cpuUsage}}</p>
-        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Memory Usage:</strong> {{memoryUsage}}</p>
-        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Disk Usage:</strong> {{diskUsage}}</p>
-        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Network Usage:</strong> {{networkUsage}}</p>
+        <div class="bg-white shadow-md rounded p-4 mt-2">
+          <p><strong>CPU:</strong><p id="cpu">{{cpuUsage}}</p></p>
+        </div>
+        <div class="bg-white shadow-md rounded p-4 mt-2">
+          <p><strong>Memory Usage:</strong><p id="memory">{{memoryUsage}}</p></p>
+        </div>
+        <div class="bg-white shadow-md rounded p-4 mt-2">
+          <p><strong>Disk Usage:</strong><p id="disk">{{diskUsage}}</p></p>
+        </div>
+        <div class="bg-white shadow-md rounded p-4 mt-2">
+          <p><strong>Network:</strong><p id="network">{{networkUsage}}</p></p>
+        </div>
     </div>
+    <script>
+      function updateStats() {
+        fetch('/stats', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain'
+          },
+        })
+        .then(response => response.json())
+        .then(data => {
+          if(data) {
+            document.getElementById('cpu').innerHTML = data.cpuUsage;
+            document.getElementById('memory').innerHTML = data.memoryUsage;
+            document.getElementById('disk').innerHTML = data.diskUsage;
+            document.getElementById('network').innerHTML = data.networkUsage;
+          } else {
+            console.log("no data");
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+      }
+      setInterval(updateStats, 20000);
+    </script>
   </body>
 </html>

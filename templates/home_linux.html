@@ -26,7 +26,9 @@
         <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Uptime:</strong> {{uptime}}</p>
         <div class="bg-white shadow-md rounded p-4 mt-2">
             <p ><strong>CPU Usage:</strong></p>
-            {{{cpuUsage}}}
+            <div id="cpu">
+              {{{cpuUsage}}}
+            </div>    
         </div>
         
         <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Memory Usage:</strong> {{memoryUsage}}</p>
@@ -34,7 +36,28 @@
             <p ><strong>Network Usage:</strong></p>
             {{{networkUsage}}}
         </div>
-        
     </div>
+    <script>
+      function updateMemoryUsage() {
+        fetch('/memory', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain'
+          },
+        })
+        .then(response => response.json()) // assuming the server sends back JSON
+        .then(data => {
+          if(data && data.cpuUsage) {
+            document.getElementById('cpu').innerHTML = data.cpuUsage;
+          } else {
+            console.log("no data");
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+      }
+      setInterval(updateMemoryUsage, 20000);
+    </script>
   </body>
 </html>

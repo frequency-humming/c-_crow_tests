@@ -30,7 +30,7 @@
         const URL = document.getElementById('URL').value;
         const submitBtn = document.getElementById('submitBtn');
         submitBtn.disabled = true;
-        fetch('/send', {
+        fetch('/sendendpoint', {
           method: 'POST',
           headers: {
             'Content-Type': 'text/plain'
@@ -40,7 +40,7 @@
         .then(response => {
           if(response.status === 202) {
             function checkForResult() {
-              fetch('/result')
+              fetch('/results')
                 .then(response => response.text())
                 .then(data => {
                   if(!data.startsWith("Traceroute result is still pending...")) {
