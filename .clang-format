@@ -4,7 +4,7 @@ AccessModifierOffset: -4
 BinPackParameters: false
 PointerAlignment: Left
 ReferenceAlignment: Left
-ColumnLimit: 130
+ColumnLimit: 170
 IndentWidth: 4
 NamespaceIndentation: All
 CompactNamespaces: false

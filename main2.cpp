@@ -15,7 +15,11 @@ int main() {
         for (const auto& stat : stats) {
             ctx[stat.getName()] = stat.getValue();
         }
+#ifdef __APPLE__
         auto page = crow::mustache::load("home.html");
+#else
+        auto page = crow::mustache::load("home_linux.html");
+#endif
         return page.render(ctx);
     });
 
@@ -26,19 +30,16 @@ int main() {
     });
 
     CROW_ROUTE(app, "/send").methods("POST"_method)([&tracerouteFuture](const crow::request& req) {
-        std::string endpoint = req.body;                 // Assuming the endpoint is sent as plain text in the body
-        tracerouteFuture = runTracerouteAsync(endpoint); // Run traceroute asynchronously
-
-        return crow::response(202); // HTTP 202 Accepted: Request accepted and processing
+        std::string endpoint = req.body;
+        tracerouteFuture = runTracerouteAsync(endpoint);
+        return crow::response(202);
     });
 
     CROW_ROUTE(app, "/result")
     ([&tracerouteFuture] {
         if (tracerouteFuture.valid() && tracerouteFuture.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-            // If the future is ready, get the result and return it
             return tracerouteFuture.get();
         } else {
-            // If the future is not ready, inform the client the result is still pending
             return std::string("Traceroute result is still pending...");
         }
     });

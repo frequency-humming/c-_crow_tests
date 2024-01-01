@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>System Information</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  </head>
+  <body class="bg-gray-100 font-sans leading-normal tracking-normal">
+    <div class="container mx-auto m-8">
+        <h1 class="text-3xl mb-2 text-gray-700">System Information</h1>
+        <p class="bg-white shadow-md rounded p-4"><strong>CPU Info:</strong> {{cpuInfo}}</p>
+        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>OS:</strong> {{{osInfo}}}</p>
+        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>OS Version:</strong> {{osVersion}}</p>
+        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Hostname:</strong> {{hostname}}</p>
+        <div class="bg-white shadow-md rounded p-4 mt-2">
+            <p><strong>Memory:</strong></p>
+            {{{memory}}}
+        </div>
+        
+        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>CPU Count:</strong> {{cpuCount}}</p>
+        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Physical CPU Cores:</strong> {{cpuCores}}</p>
+        <div class="bg-white shadow-md rounded p-4 mt-2">
+          <p><strong>Disk:</strong></p>
+          {{{disk}}}
+        </div>
+        
+        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Uptime:</strong> {{uptime}}</p>
+        <div class="bg-white shadow-md rounded p-4 mt-2">
+            <p ><strong>CPU Usage:</strong></p>
+            {{{cpuUsage}}}
+        </div>
+        
+        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Memory Usage:</strong> {{memoryUsage}}</p>
+        <div class="bg-white shadow-md rounded p-4 mt-2">
+            <p ><strong>Network Usage:</strong></p>
+            {{{networkUsage}}}
+        </div>
+        
+    </div>
+  </body>
+</html>

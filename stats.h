@@ -8,7 +8,7 @@
 #include <vector>
 
 std::future<std::string> runTracerouteAsync(const std::string& endpoint);
-std::string execCommand(const char* cmd, std::bitset<3> v);
+std::string execCommand(const char* cmd, std::bitset<4> v);
 
 class Stats {
     private:
