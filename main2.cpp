@@ -57,7 +57,7 @@ int main() {
         crow::mustache::context ctx;
         for (const auto& stat : stats) {
             if (stat.getName() == "cpuUsage") {
-                ctx[stat.getName()] = execCommand("mpstat -P ALL 1 | head -n 8 |  awk '/(4 CPU)/ {found=1; next} found'", std::bitset<4>{0b0010});
+                ctx[stat.getName()] = execCommand("mpstat -P ALL 1 | head -n 8 | awk '/^$/ {found=1; next} found'", std::bitset<4>{0b0010});
                 break;
             }
         }
@@ -74,5 +74,6 @@ int main() {
         }
     });
 
-    app.port(18080).multithreaded().run();
+    // app.port(18080).multithreaded().run();
+    app.port(18080).concurrency(2).run();
 }

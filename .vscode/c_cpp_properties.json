@@ -4,7 +4,8 @@
             "name": "Mac",
             "includePath": [
                 "${workspaceFolder}/**",
-                "./Libraries/Crow/include/"
+                "./Libraries/Crow/include/",
+                "/opt/homebrew/Cellar/asio/1.28.1/include"
             ],
             "defines": [],
             "macFrameworkPath": [
