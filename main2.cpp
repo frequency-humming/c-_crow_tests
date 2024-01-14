@@ -37,32 +37,18 @@ int main() {
         return crow::response(202);
     });
 #ifdef __APPLE__
-    CROW_ROUTE(app, "/stats").methods("POST"_method)([&stats]() {
+    CROW_ROUTE(app, "/stats").methods("POST"_method)([]() {
         crow::mustache::context ctx;
-        for (const auto& stat : stats) {
-            if (stat.getName() == "cpuUsage") {
-                ctx[stat.getName()] = execCommand("top -l 1 | grep CPU", std::bitset<4>{0b0100});
-            } else if (stat.getName() == "memoryUsage") {
-                ctx[stat.getName()] = execCommand("top -l 1 | grep PhysMem", std::bitset<4>{0b0000});
-            } else if (stat.getName() == "diskUsage") {
-                ctx[stat.getName()] = execCommand("top -l 1 | grep Disk", std::bitset<4>{0b0100});
-            } else if (stat.getName() == "networkUsage") {
-                ctx[stat.getName()] = execCommand("top -l 1 | grep Network", std::bitset<4>{0b0000});
-            } else {
-                continue;
-            }
-        }
+        ctx["cpuUsage"] = execCommand("top -l 1 | grep CPU", std::bitset<4>{0b0100});
+        ctx["memoryUsage"] = execCommand("top -l 1 | grep PhysMem", std::bitset<4>{0b0000});
+        ctx["diskUsage"] = execCommand("top -l 1 | grep Disk", std::bitset<4>{0b0100});
+        ctx["networkUsage"] = execCommand("top -l 1 | grep Network", std::bitset<4>{0b0000});
         return ctx;
     });
 #else
-    CROW_ROUTE(app, "/memory").methods("POST"_method)([&stats, command]() {
+    CROW_ROUTE(app, "/memory").methods("POST"_method)([&command]() {
         crow::mustache::context ctx;
-        for (const auto& stat : stats) {
-            if (stat.getName() == "cpuUsage") {
-                ctx[stat.getName()] = execCommand(command.c_str(), std::bitset<4>{0b0010});
-                break;
-            }
-        }
+        ctx["cpuUsage"] = execCommand(command.c_str(), std::bitset<4>{0b0010});
         return ctx;
     });
 #endif
