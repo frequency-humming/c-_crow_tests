@@ -8,7 +8,9 @@ int main() {
     std::future<std::string> tracerouteFuture;
     std::vector<Stats> stats = getStats();
     parseResponse(stats);
-
+#ifndef __APPLE__
+    std::string command{addCpuUsage(stats)};
+#endif
     CROW_ROUTE(app, "/")
     ([&stats] {
         crow::mustache::context ctx;
@@ -53,11 +55,11 @@ int main() {
         return ctx;
     });
 #else
-    CROW_ROUTE(app, "/memory").methods("POST"_method)([&stats]() {
+    CROW_ROUTE(app, "/memory").methods("POST"_method)([&stats, command]() {
         crow::mustache::context ctx;
         for (const auto& stat : stats) {
             if (stat.getName() == "cpuUsage") {
-                ctx[stat.getName()] = execCommand("mpstat -P ALL 1 | head -n 8 | awk '/^$/ {found=1; next} found'", std::bitset<4>{0b0010});
+                ctx[stat.getName()] = execCommand(command.c_str(), std::bitset<4>{0b0010});
                 break;
             }
         }

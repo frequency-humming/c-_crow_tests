@@ -25,7 +25,7 @@ std::vector<Stats> getStats() {
     stats.emplace_back("networkUsage", execCommand("top -l 1 | grep Network", std::bitset<4>{0b0000}));
 #else
     stats.emplace_back("cpuInfo", execCommand("cat /proc/cpuinfo | grep 'model name' | uniq | awk -F: '{print $2}'", std::bitset<4>{0b0000}));
-    stats.emplace_back("kernel", execCommand("mpstat -P ALL 1 | head -n 1", std::bitset<4>{0b0000}));
+    stats.emplace_back("kernel", execCommand("hostnamectl | grep 'Kernel' | awk -F: '{print $2}'", std::bitset<4>{0b0000}));
     stats.emplace_back("osInfo", execCommand("cat /etc/os-release | grep '^NAME=' | awk -F= '{print $2}'", std::bitset<4>{0b0000}));
     stats.emplace_back("osVersion", execCommand("cat /etc/os-release | grep VERSION_ID | awk -F= '{print $2}'", std::bitset<4>{0b0000}));
     stats.emplace_back("hostname", execCommand("hostname", std::bitset<4>{0b0000}));
@@ -33,7 +33,6 @@ std::vector<Stats> getStats() {
     stats.emplace_back("cpuCores", execCommand("nproc --all", std::bitset<4>{0b0000}));
     stats.emplace_back("disk", execCommand("df -h", std::bitset<4>{0b0010}));
     stats.emplace_back("uptime", execCommand("uptime", std::bitset<4>{0b0000}));
-    stats.emplace_back("cpuUsage", execCommand("mpstat -P ALL 1 | head -n 8 | awk '/^$/ {found=1; next} found'", std::bitset<4>{0b0010}));
     stats.emplace_back("memoryUsage", execCommand("cat /proc/meminfo | grep 'MemTotal' | awk -F: '{print $2}'", std::bitset<4>{0b0000}));
     stats.emplace_back("networkUsage", execCommand("ip addr", std::bitset<4>{0b1000}));
 #endif
@@ -69,6 +68,18 @@ std::future<std::string> runTracerouteAsync(const std::string& endpoint) {
             return "Traceroute failed: " + std::string(e.what());
         }
     });
+}
+std::string addCpuUsage(std::vector<Stats>& stats) {
+    int parseResponse = 5;
+    for (const auto& stat : stats) {
+        if (stat.getName() == "cpuCount") {
+            parseResponse += std::stoi(stat.getValue());
+            break;
+        }
+    }
+    const std::string command{"mpstat -P ALL 1 | head -n " + std::to_string(parseResponse) + " | awk '/^$/ {found=1; next} found'"};
+    stats.emplace_back("cpuUsage", execCommand(command.c_str(), std::bitset<4>{0b0010}));
+    return command;
 }
 
 std::string execCommand(const char* cmd, std::bitset<4> v) {
