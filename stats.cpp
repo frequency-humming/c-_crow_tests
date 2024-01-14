@@ -24,7 +24,8 @@ std::vector<Stats> getStats() {
     stats.emplace_back("diskUsage", execCommand("top -l 1 | grep Disk", std::bitset<4>{0b0100}));
     stats.emplace_back("networkUsage", execCommand("top -l 1 | grep Network", std::bitset<4>{0b0000}));
 #else
-    stats.emplace_back("cpuInfo", execCommand("mpstat -P ALL 1 | head -n 1", std::bitset<4>{0b0000}));
+    stats.emplace_back("cpuInfo", execCommand("cat /proc/cpuinfo | grep 'model name' | uniq | awk -F: '{print $2}'", std::bitset<4>{0b0000}));
+    stats.emplace_back("kernel", execCommand("mpstat -P ALL 1 | head -n 1", std::bitset<4>{0b0000}));
     stats.emplace_back("osInfo", execCommand("cat /etc/os-release | grep '^NAME=' | awk -F= '{print $2}'", std::bitset<4>{0b0000}));
     stats.emplace_back("osVersion", execCommand("cat /etc/os-release | grep VERSION_ID | awk -F= '{print $2}'", std::bitset<4>{0b0000}));
     stats.emplace_back("hostname", execCommand("hostname", std::bitset<4>{0b0000}));
