@@ -43,11 +43,11 @@
           <p>{{.}}</p>
           {{/containers}}
         </div>
+        {{/hasContainers}}
         <div class="bg-white shadow-md rounded p-4 mt-2">
             <p ><strong>Network Usage:</strong></p>
             {{{networkUsage}}}
-        </div>
-        {{/hasContainers}}
+        </div>     
     </div>
     <script>
       function updateMemoryUsage() {
