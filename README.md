@@ -7,3 +7,4 @@ Added Home page with server stats <br />
 Added docker for alpine linux for testing <br />
 Added routes and refresh of main components for mac and linux <br />
 Added docker image for amazon linux <br />
+Added initial docker info <br />
