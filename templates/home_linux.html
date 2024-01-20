@@ -21,22 +21,33 @@
         <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Physical CPU Cores:</strong> {{cpuCores}}</p>
         <div class="bg-white shadow-md rounded p-4 mt-2">
           <p><strong>Disk:</strong></p>
-          {{{disk}}}
+          <div id="disk">
+            {{{disk}}}
+          </div>
         </div>
-        
-        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Uptime:</strong> {{uptime}}</p>
+        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Memory Usage:</strong> {{memoryUsage}}</p>
+        <p class="bg-white shadow-md rounded p-4 mt-2" id="uptime"><strong>Uptime:</strong> {{uptime}}</p>
         <div class="bg-white shadow-md rounded p-4 mt-2">
             <p ><strong>CPU Usage:</strong></p>
             <div id="cpu">
               {{{cpuUsage}}}
             </div>    
         </div>
-        
-        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Memory Usage:</strong> {{memoryUsage}}</p>
+        {{#hasContainers}}
+        <div class="bg-white shadow-md rounded p-4 mt-2">
+          <p><strong>Docker Containers Running: </strong>{{docker}}</p>
+        </div>
+        <div class="bg-white shadow-md rounded p-4 mt-2">
+          <div><strong>Docker Name and IP:</strong></div>
+          {{#containers}}
+          <p>{{.}}</p>
+          {{/containers}}
+        </div>
         <div class="bg-white shadow-md rounded p-4 mt-2">
             <p ><strong>Network Usage:</strong></p>
             {{{networkUsage}}}
         </div>
+        {{/hasContainers}}
     </div>
     <script>
       function updateMemoryUsage() {
@@ -50,6 +61,8 @@
         .then(data => {
           if(data && data.cpuUsage) {
             document.getElementById('cpu').innerHTML = data.cpuUsage;
+            document.getElementById('uptime').innerHTML = data.uptime;
+            document.getElementById('disk').innerHTML = data.disk;
           } else {
             console.log("no data");
           }

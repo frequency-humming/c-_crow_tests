@@ -4,6 +4,8 @@
 #include <array>
 #include <bitset>
 #include <future>
+#include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -29,5 +31,6 @@ class Stats {
 std::vector<Stats> getStats();
 void parseResponse(std::vector<Stats>& stats);
 std::string addCpuUsage(std::vector<Stats>& stats);
+void dockerHealth(std::vector<Stats>& stats);
 
 #endif

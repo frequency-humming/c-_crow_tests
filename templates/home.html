@@ -32,6 +32,17 @@
         <div class="bg-white shadow-md rounded p-4 mt-2">
           <p><strong>Network:</strong><p id="network">{{networkUsage}}</p></p>
         </div>
+        {{#hasContainers}}
+        <div class="bg-white shadow-md rounded p-4 mt-2">
+          <p><strong>Docker Containers Running: </strong>{{docker}}</p>
+        </div>
+        <div class="bg-white shadow-md rounded p-4 mt-2">
+          <div><strong>Docker Name and IP:</strong></div>
+          {{#containers}}
+          <p>{{.}}</p>
+          {{/containers}}
+        </div>
+        {{/hasContainers}}
     </div>
     <script>
       function updateStats() {

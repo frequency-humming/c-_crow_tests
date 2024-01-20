@@ -6,17 +6,33 @@ std::vector<std::string> msgs;
 int main() {
     crow::SimpleApp app;
     std::future<std::string> tracerouteFuture;
-    std::vector<Stats> stats = getStats();
+    std::vector<Stats> stats{getStats()};
     parseResponse(stats);
+    dockerHealth(stats);
 #ifndef __APPLE__
     std::string command{addCpuUsage(stats)};
 #endif
     CROW_ROUTE(app, "/")
     ([&stats] {
         crow::mustache::context ctx;
+        std::vector<std::string> details;
+        bool hasContainers = false;
+        int count = 0;
         for (const auto& stat : stats) {
-            ctx[stat.getName()] = stat.getValue();
+            if (stat.getName() == "containerId") {
+                hasContainers = true;
+                count++;
+                ctx["docker"] = count;
+            } else if (stat.getName() == "name") {
+                details.emplace_back(stat.getValue());
+            } else {
+                ctx[stat.getName()] = stat.getValue();
+            }
         }
+        if (hasContainers) {
+            ctx["containers"] = details;
+        }
+
 #ifdef __APPLE__
         auto page = crow::mustache::load("home.html");
 #else
@@ -40,6 +56,7 @@ int main() {
     CROW_ROUTE(app, "/stats").methods("POST"_method)([]() {
         crow::mustache::context ctx;
         ctx["cpuUsage"] = execCommand("top -l 1 | grep CPU", std::bitset<4>{0b0100});
+        ctx["uptime"] = execCommand("uptime", std::bitset<4>{0b0000});
         ctx["memoryUsage"] = execCommand("top -l 1 | grep PhysMem", std::bitset<4>{0b0000});
         ctx["diskUsage"] = execCommand("top -l 1 | grep Disk", std::bitset<4>{0b0100});
         ctx["networkUsage"] = execCommand("top -l 1 | grep Network", std::bitset<4>{0b0000});
@@ -49,6 +66,8 @@ int main() {
     CROW_ROUTE(app, "/memory").methods("POST"_method)([&command]() {
         crow::mustache::context ctx;
         ctx["cpuUsage"] = execCommand(command.c_str(), std::bitset<4>{0b0010});
+        ctx["uptime"] = execCommand("uptime", std::bitset<4>{0b0000});
+        ctx["disk"] = execCommand("df -h", std::bitset<4>{0b0010});
         return ctx;
     });
 #endif
