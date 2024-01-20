@@ -29,10 +29,10 @@ int main() {
                 ctx[stat.getName()] = stat.getValue();
             }
         }
+        ctx["hasContainers"] = hasContainers;
         if (hasContainers) {
             ctx["containers"] = details;
         }
-
 #ifdef __APPLE__
         auto page = crow::mustache::load("home.html");
 #else

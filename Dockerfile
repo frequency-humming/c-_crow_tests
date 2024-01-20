@@ -2,7 +2,7 @@ FROM amazonlinux:latest
 
 RUN yum update -y && yum groupinstall -y "Development Tools"
 
-RUN yum install -y git cmake iproute hostname sysstat traceroute
+RUN yum install -y git cmake iproute hostname sysstat traceroute docker
 
 RUN git clone https://github.com/chriskohlhoff/asio.git /asio
 
