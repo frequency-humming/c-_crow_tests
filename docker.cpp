@@ -9,14 +9,14 @@ std::string getContainerIds() {
 
 void getNameandIP(std::vector<Stats>& docker) {
     std::vector<Stats> temp;
-    // std::string agent = "ecs-agent";
+    std::string command;
+    std::string dockerStats;
     for (const auto& stat : docker) {
         if (stat.getName() == "containerId") {
-            std::string command =
-                "docker inspect " + stat.getValue() + " -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}} {{.Name}}' | awk -F'/' '{print $1 $2}'";
-            std::string dockerStats = execCommand(command.c_str(), std::bitset<4>{0b0000});
-            if (dockerStats.find("ecs-agent")) {
-                std::cout << "ecs-agent" << std::endl;
+            command = "docker inspect " + stat.getValue() + " -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}} {{.Name}}' | awk -F'/' '{print $1 $2}'";
+            dockerStats = execCommand(command.c_str(), std::bitset<4>{0b0000});
+            if (dockerStats == "ecs-agent") {
+                std::cout << "ecs-agent" << dockerStats << std::endl;
                 Stats::setAgent(stat.getValue());
             }
             temp.emplace_back("name", dockerStats);
