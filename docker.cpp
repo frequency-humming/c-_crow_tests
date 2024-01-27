@@ -1,5 +1,7 @@
 #include "stats.h"
 
+std::string Stats::agent;
+
 std::string getContainerIds() {
     std::string containerIds = execCommand("docker ps -q", std::bitset<4>{0b0000});
     return containerIds;
