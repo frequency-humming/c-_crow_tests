@@ -105,7 +105,6 @@ std::string execCommand(const char* cmd, std::bitset<4> v) {
                 std::vector<std::string> parts(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
                 tableHtml += "<tr>";
                 for (const auto& part : parts) {
-                    std::cout << "in for loop" << std::endl;
                     if (part == "Mounted" || part == "map") {
                         mountPoint = part;
                         var = true;
