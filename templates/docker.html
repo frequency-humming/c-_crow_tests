@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>System Information</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  </head>
+  <body class="bg-gray-100 font-sans leading-normal tracking-normal">
+    {{#noContainers}}
+    <p class="bg-white shadow-md rounded p-4" style="text-align: center;"><strong>Docker:</strong> {{docker}}</p>
+    {{/noContainers}}
+    <div class="container mx-auto m-8">
+        {{#hasContainers}}
+        <h1 class="text-3xl mb-2 text-gray-700">Docker Information</h1>
+        <div class="bg-white shadow-md rounded p-4 mt-2">
+          <div><strong>Docker Details:</strong></div>
+          {{#containers}}
+          <p>{{.}}</p>
+          {{/containers}}
+        </div>
+        {{/hasContainers}}  
+    </div>
+    <!-- <script>
+      function updateMemoryUsage() {
+        fetch('/memory', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain'
+          },
+        })
+        .then(response => response.json()) // assuming the server sends back JSON
+        .then(data => {
+          if(data && data.cpuUsage) {
+            document.getElementById('cpu').innerHTML = data.cpuUsage;
+            document.getElementById('uptime').innerHTML = data.uptime;
+            document.getElementById('disk').innerHTML = data.disk;
+          } else {
+            console.log("no data");
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+      }
+      setInterval(updateMemoryUsage, 20000);
+    </script> -->
+  </body>
+</html>

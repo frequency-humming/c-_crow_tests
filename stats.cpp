@@ -33,7 +33,7 @@ std::vector<Stats> getStats() {
     stats.emplace_back("disk", execCommand("df -h", std::bitset<4>{0b0010}));
     stats.emplace_back("uptime", execCommand("uptime", std::bitset<4>{0b0000}));
     stats.emplace_back("memoryUsage", execCommand("cat /proc/meminfo | grep 'MemTotal' | awk -F: '{print $2}'", std::bitset<4>{0b0000}));
-    stats.emplace_back("networkUsage", execCommand("ip addr", std::bitset<4>{0b1000}));
+    stats.emplace_back("networkUsage", execCommand("ip addr | grep -E '^[0-9]+:|inet '", std::bitset<4>{0b1000}));
 #endif
     return stats;
 }
@@ -96,12 +96,16 @@ std::string execCommand(const char* cmd, std::bitset<4> v) {
             if (v.test(0)) {
                 result += buffer.data();
                 result += "<br>";
+            } else if (v.test(3) && v.test(1)) {
+                result += '\n';
+                result += buffer.data();
+                result += '\n';
             } else if (v.test(1)) {
                 std::istringstream iss(buffer.data());
                 std::vector<std::string> parts(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
                 tableHtml += "<tr>";
-
                 for (const auto& part : parts) {
+                    std::cout << "in for loop" << std::endl;
                     if (part == "Mounted" || part == "map") {
                         mountPoint = part;
                         var = true;
@@ -132,7 +136,7 @@ std::string execCommand(const char* cmd, std::bitset<4> v) {
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
     }
-    if (v.test(1)) {
+    if (v.test(1) && !v.test(3)) {
         tableHtml += "</tbody></table>";
         result = tableHtml;
     }

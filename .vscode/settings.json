@@ -99,6 +99,7 @@
         "thread": "cpp",
         "cinttypes": "cpp",
         "__verbose_abort": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "__memory": "cpp"
     }
 }

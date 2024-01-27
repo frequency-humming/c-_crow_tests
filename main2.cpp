@@ -7,6 +7,7 @@ int main() {
     crow::SimpleApp app;
     std::future<std::string> tracerouteFuture;
     std::vector<Stats> stats{getStats()};
+    std::vector<DockerConfig> config;
     parseResponse(stats);
     dockerHealth(stats);
 #ifndef __APPLE__
@@ -79,6 +80,35 @@ int main() {
         } else {
             return std::string("Traceroute result is still pending...");
         }
+    });
+
+    CROW_ROUTE(app, "/docker")
+    ([&stats, &config] {
+        crow::mustache::context ctx;
+        std::vector<std::string> details;
+        config.clear();
+        if (Stats::getBoolean()) {
+            dockerStats(stats, config);
+            for (const auto& stat : config) {
+                details.emplace_back("Container Id: " + stat.containerid);
+                details.emplace_back("Name: " + stat.name);
+                details.emplace_back("Created At: " + stat.created);
+                details.emplace_back("IP: " + stat.ipaddress);
+                details.emplace_back("Log Path: " + stat.logpath);
+                details.emplace_back("Log Type: " + stat.logtype);
+                details.emplace_back("Port: " + stat.port);
+                details.emplace_back("Memory: " + stat.memory);
+                details.emplace_back("Mount Destination: " + stat.mount_destination);
+                details.emplace_back("Mount Source: " + stat.mount_source);
+            }
+            ctx["hasContainers"] = true;
+            ctx["containers"] = details;
+        } else {
+            ctx["docker"] = "Docker is not running";
+            ctx["noContainers"] = true;
+        }
+        auto page = crow::mustache::load("docker.html");
+        return page.render(ctx);
     });
 
     // app.port(18080).multithreaded().run();
