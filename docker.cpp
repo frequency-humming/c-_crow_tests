@@ -7,11 +7,15 @@ std::string getContainerIds() {
 
 void getNameandIP(std::vector<Stats>& docker) {
     std::vector<Stats> temp;
+    std::string agent = "ecs-agent";
     for (const auto& stat : docker) {
         if (stat.getName() == "containerId") {
             std::string command =
                 "docker inspect " + stat.getValue() + " -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}} {{.Name}}' | awk -F'/' '{print $1 $2}'";
             std::string dockerStats = execCommand(command.c_str(), std::bitset<4>{0b0000});
+            if (dockerStats.size() >= agent.size() && dockerStats.substr(dockerStats.size() - agent.size()) == agent) {
+                Stats::setAgent(stat.getValue());
+            }
             temp.emplace_back("name", dockerStats);
         }
     }
@@ -106,20 +110,6 @@ void streamParser(const std::string& results, std::vector<DockerConfig>& config,
         }
         config.emplace_back(temp);
     }
-
-    // else if (part.find("map") == 0 || (part.length() >= 3 && part.substr(part.length() - 3) == "}]]")) {
-    //                     for (char ch : part) {
-    //                         if (std::isdigit(ch)) {
-    //                             result += ch;
-    //                         } else if (ch == '/') {
-    //                             result += ':';
-    //                         } else if (ch == ']' && index < 1) {
-    //                             index++;
-    //                         } else if (ch == ']' && index > 0) {
-    //                             result += '\n';
-    //                         }
-    //                     }
-
     // case 7:
     //     std::cout << "mount_source: " << value << std::endl;
     //     temp.mount_source = value;
@@ -143,7 +133,7 @@ void dockerStats(std::vector<Stats>& stats, std::vector<DockerConfig>& config) {
     std::string command;
     std::string dockerStats;
     for (const auto& stat : stats) {
-        if (stat.getName() == "containerId") {
+        if (stat.getName() == "containerId" && stat.getValue() != Stats::getAgent()) {
             command = "docker inspect " + stat.getValue() + " -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}} " +
                       " {{.Name}} {{.Created}} {{.HostConfig.LogConfig.Type}} " + "{{.HostConfig.Memory}} " + "{{range.Mounts}} " +
                       "{{.Type}} : {{ .Source }} destination: {{.Destination}}{{ end }}'";

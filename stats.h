@@ -16,6 +16,7 @@ class Stats {
         std::string name{};
         std::string value{};
         inline static bool dockerFlag = false;
+        static std::string agent;
 
     public:
         Stats(std::string_view name, std::string_view value) : name{name}, value{value} {
@@ -31,6 +32,12 @@ class Stats {
         }
         static bool getBoolean() {
             return dockerFlag;
+        }
+        static void setAgent(std::string_view a) {
+            agent = a;
+        }
+        static std::string getAgent() {
+            return agent;
         }
 };
 
@@ -60,37 +67,6 @@ class DockerConfig {
                      std::string_view mount_destination)
             : containerid{containerid}, ipaddress{ipaddress}, name{name}, created{created}, logpath{logpath}, logtype{porttype}, port{port}, memory{memory},
               mount_source{mount_source}, mount_destination{mount_destination} {};
-
-        void setContainerId(const std::string& id) {
-            containerid = id;
-        }
-        void setIpAddress(const std::string& ip) {
-            ipaddress = ip;
-        }
-        void setName(const std::string& n) {
-            name = n;
-        }
-        void setCreated(const std::string& c) {
-            created = c;
-        }
-        void setLogPath(const std::string& lp) {
-            logpath = lp;
-        }
-        void setLogType(const std::string& lg) {
-            logtype = lg;
-        }
-        void setPort(const std::string& p) {
-            port = p;
-        }
-        void setMemory(const std::string& m) {
-            memory = m;
-        }
-        void setMountSource(const std::string& ms) {
-            mount_source = ms;
-        }
-        void setMountDestination(const std::string& md) {
-            mount_destination = md;
-        }
 };
 
 std::string execCommand(const char* cmd, std::bitset<4> v);
