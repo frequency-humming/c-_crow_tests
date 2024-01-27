@@ -34,7 +34,6 @@ void streamParser(const std::string& results, std::vector<DockerConfig>& config,
     if (boolean) {
         while (iss >> value) {
             switch (count) {
-                std::cout << "value " << value << std::endl;
                 case 0:
                     temp.logpath = value;
                     break;
