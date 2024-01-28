@@ -154,9 +154,3 @@ void dockerStats(std::vector<Stats>& stats, std::vector<DockerConfig>& config) {
         }
     }
 }
-
-// maybe change the bitset to an emun an use it as a string to make code and intention clear
-// from here I can ping the ip for health check
-// or docker stats - docker stats --no-stream
-
-// for monitoring use iftop for eth0 and docker0
