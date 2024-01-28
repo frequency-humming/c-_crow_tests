@@ -15,7 +15,7 @@ void getNameandIP(std::vector<Stats>& docker) {
         if (stat.getName() == "containerId") {
             command = "docker inspect " + stat.getValue() + " -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}} {{.Name}}' | awk -F'/' '{print $1 $2}'";
             dockerStats = execCommand(command.c_str(), std::bitset<4>{0b0000});
-            if (dockerStats.find("agent")) {
+            if (dockerStats.find("agent") != std::string::npos) {
                 std::cout << "ecs-agent" << dockerStats << std::endl;
                 Stats::setAgent(stat.getValue());
             }
