@@ -103,8 +103,10 @@ void streamParser(const std::string& results, std::vector<DockerConfig>& config,
                 case 4: {
                     if (value != "0") {
                         double num = std::stod(value);
-                        num /= 1024;
-                        temp.memory = std::to_string(num) + " MB";
+                        num /= 1024 * 1024;
+                        std::ostringstream oss;
+                        oss << std::fixed << std::setprecision(2) << num;
+                        temp.memory = oss.str() + " MB";
                     } else {
                         temp.memory = "No Data";
                     }

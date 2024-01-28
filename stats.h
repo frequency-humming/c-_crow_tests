@@ -4,6 +4,7 @@
 #include <array>
 #include <bitset>
 #include <future>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
