@@ -102,9 +102,23 @@ void streamParser(const std::string& results, std::vector<DockerConfig>& config,
                     break;
                 case 4: {
                     if (value != "0") {
-                        temp.memory = value;
+                        double num = std::stod(value);
+                        num /= 1024;
+                        temp.memory = std::to_string(num) + " MB";
                     } else {
                         temp.memory = "No Data";
+                    }
+                    break;
+                }
+                case 5: {
+                    if (!value.empty()) {
+                        temp.mount_source = value;
+                    }
+                    break;
+                }
+                case 6: {
+                    if (!value.empty()) {
+                        temp.mount_destination = value;
                     }
                     break;
                 }
@@ -113,14 +127,6 @@ void streamParser(const std::string& results, std::vector<DockerConfig>& config,
         }
         config.emplace_back(temp);
     }
-    // case 7:
-    //     std::cout << "mount_source: " << value << std::endl;
-    //     temp.mount_source = value;
-    //     break;
-    // case 8:
-    //     std::cout << "mount_destination: " << value << std::endl;
-    //     temp.mount_destination = value;
-    //     break;
 }
 
 void dockerHealth(std::vector<Stats>& docker) {
@@ -139,7 +145,7 @@ void dockerStats(std::vector<Stats>& stats, std::vector<DockerConfig>& config) {
         if (stat.getName() == "containerId" && stat.getValue() != Stats::getAgent()) {
             command = "docker inspect " + stat.getValue() + " -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}} " +
                       " {{.Name}} {{.Created}} {{.HostConfig.LogConfig.Type}} " + "{{.HostConfig.Memory}} " + "{{range.Mounts}} " +
-                      "{{.Type}} : {{ .Source }} destination: {{.Destination}}{{ end }}'";
+                      " {{ .Source }} {{.Destination}}{{ end }}'";
             dockerStats = execCommand(command.c_str(), std::bitset<4>{0b1010});
             streamParser(dockerStats, config, stat.getValue(), false);
             command = "docker inspect " + stat.getValue() + " -f '{{.LogPath}} {{.HostConfig.PortBindings}}'";
@@ -148,3 +154,9 @@ void dockerStats(std::vector<Stats>& stats, std::vector<DockerConfig>& config) {
         }
     }
 }
+
+// maybe change the bitset to an emun an use it as a string to make code and intention clear
+// from here I can ping the ip for health check
+// or docker stats - docker stats --no-stream
+
+// for monitoring use iftop for eth0 and docker0

@@ -51,8 +51,8 @@ class DockerConfig {
         std::string logtype;
         std::string port;
         std::string memory;
-        std::string mount_source;
-        std::string mount_destination;
+        std::string mount_source = "No Data";
+        std::string mount_destination = "No Data";
 
         DockerConfig() = default;
         DockerConfig(std::string_view containerid,
@@ -70,7 +70,7 @@ class DockerConfig {
 };
 
 std::string execCommand(const char* cmd, std::bitset<4> v);
-std::vector<Stats> getStats();
+void getStats(std::vector<Stats>& stats);
 void parseResponse(std::vector<Stats>& stats);
 std::string addCpuUsage(std::vector<Stats>& stats);
 void dockerHealth(std::vector<Stats>& stats);

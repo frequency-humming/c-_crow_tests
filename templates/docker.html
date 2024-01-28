@@ -4,17 +4,27 @@
     <title>System Information</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   </head>
-  <body class="bg-gray-100 font-sans leading-normal tracking-normal">
+  <body class="bg-gray-800 font-sans leading-normal tracking-normal">
     {{#noContainers}}
-    <p class="bg-white shadow-md rounded p-4" style="text-align: center;"><strong>Docker:</strong> {{docker}}</p>
+    <p class="bg-white shadow-md rounded p-4 text-center"><strong>Docker:</strong> {{docker}}</p>
     {{/noContainers}}
     <div class="container mx-auto m-8">
         {{#hasContainers}}
-        <h1 class="text-3xl mb-2 text-gray-700">Docker Information</h1>
-        <div class="bg-white shadow-md rounded p-4 mt-2">
-          <div><strong>Docker Details:</strong></div>
+        <h1 class="text-3xl mb-2 text-gray-300 text-center">Docker Information</h1>
+        <div class="bg-gray-700 shadow-md rounded p-4 mt-2">
           {{#containers}}
-          <p>{{.}}</p>
+          <div class="bg-gray-600 mb-4 p-4 rounded shadow-lg">
+            <p class="text-gray-200"><strong>Container ID: </strong>{{containerId}}</p>
+            <p class="text-gray-200"><strong>Name: </strong>{{name}}</p>
+            <p class="text-gray-200"><strong>Created: </strong>{{created}}</p>
+            <p class="text-gray-200"><strong>IP: </strong>{{ip}}</p>
+            <p class="text-gray-200"><strong>Port: </strong>{{port}}</p>
+            <p class="text-gray-200"><strong>Log Path: </strong>{{logPath}}</p>
+            <p class="text-gray-200"><strong>Log Type: </strong>{{logType}}</p>
+            <p class="text-gray-200"><strong>Memory: </strong>{{memory}}</p>
+            <p class="text-gray-200"><strong>mountSource: </strong>{{mountSource}}</p>
+            <p class="text-gray-200"><strong>mountDestination: </strong>{{mountDestination}}</p>      
+          </div>
           {{/containers}}
         </div>
         {{/hasContainers}}  

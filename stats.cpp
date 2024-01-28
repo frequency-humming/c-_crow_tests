@@ -5,8 +5,7 @@
 #include <stdexcept>
 #include <unistd.h>
 
-std::vector<Stats> getStats() {
-    std::vector<Stats> stats;
+void getStats(std::vector<Stats>& stats) {
 #ifdef __APPLE__
     stats.emplace_back("cpuInfo", execCommand("sysctl -n machdep.cpu.brand_string", std::bitset<4>{0b0000}));
     stats.emplace_back("osInfo", execCommand("sw_vers -productName", std::bitset<4>{0b0000}));
@@ -35,7 +34,6 @@ std::vector<Stats> getStats() {
     stats.emplace_back("memoryUsage", execCommand("cat /proc/meminfo | grep 'MemTotal' | awk -F: '{print $2}'", std::bitset<4>{0b0000}));
     stats.emplace_back("networkUsage", execCommand("ip addr | grep -E '^[0-9]+:|inet '", std::bitset<4>{0b1000}));
 #endif
-    return stats;
 }
 
 void parseResponse(std::vector<Stats>& stats) {

@@ -4,39 +4,39 @@
     <title>System Information</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   </head>
-  <body class="bg-gray-100 font-sans leading-normal tracking-normal">
+  <body class="bg-gray-800 font-sans leading-normal tracking-normal">
     <div class="container mx-auto m-8">
-        <h1 class="text-3xl mb-2 text-gray-700">System Information</h1>
-        <p class="bg-white shadow-md rounded p-4"><strong>CPU Info:</strong> {{cpuInfo}}</p>
-        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>OS:</strong> {{osInfo}}</p>
-        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>OS Version:</strong> {{osVersion}}</p>
-        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Hostname:</strong> {{hostname}}</p>
-        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Memory:</strong> {{memory}}</p>
-        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>CPU Count:</strong> {{cpuCount}}</p>
-        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Physical CPU Cores:</strong> {{cpuCores}}</p>
-        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Logical CPU Threads:</strong> {{cpuThreads}}</p>
-        <div class="bg-white shadow-md rounded p-4 mt-2">
+        <h1 class="text-3xl mb-2 text-gray-300" style="text-align: center;">System Information</h1>
+        <p class="bg-gray-400 shadow-md rounded p-4"><strong>CPU Info:</strong> {{cpuInfo}}</p>
+        <p class="bg-gray-400 shadow-md rounded p-4 mt-2"><strong>OS:</strong> {{osInfo}}</p>
+        <p class="bg-gray-400 shadow-md rounded p-4 mt-2"><strong>OS Version:</strong> {{osVersion}}</p>
+        <p class="bg-gray-400 shadow-md rounded p-4 mt-2"><strong>Hostname:</strong> {{hostname}}</p>
+        <p class="bg-gray-400 shadow-md rounded p-4 mt-2"><strong>Memory:</strong> {{memory}}</p>
+        <p class="bg-gray-400 shadow-md rounded p-4 mt-2"><strong>CPU Count:</strong> {{cpuCount}}</p>
+        <p class="bg-gray-400 shadow-md rounded p-4 mt-2"><strong>Physical CPU Cores:</strong> {{cpuCores}}</p>
+        <p class="bg-gray-400 shadow-md rounded p-4 mt-2"><strong>Logical CPU Threads:</strong> {{cpuThreads}}</p>
+        <div class="bg-gray-400 shadow-md rounded p-4 mt-2">
           <p><strong>Disk:</strong></p>
           {{{disk}}}
         </div>
-        <p class="bg-white shadow-md rounded p-4 mt-2"><strong>Uptime:</strong> {{uptime}}</p>
-        <div class="bg-white shadow-md rounded p-4 mt-2">
+        <p class="bg-gray-400 shadow-md rounded p-4 mt-2"><strong>Uptime:</strong> {{uptime}}</p>
+        <div class="bg-gray-400 shadow-md rounded p-4 mt-2">
           <p><strong>CPU:</strong><p id="cpu">{{cpuUsage}}</p></p>
         </div>
-        <div class="bg-white shadow-md rounded p-4 mt-2">
+        <div class="bg-gray-400 shadow-md rounded p-4 mt-2">
           <p><strong>Memory Usage:</strong><p id="memory">{{memoryUsage}}</p></p>
         </div>
-        <div class="bg-white shadow-md rounded p-4 mt-2">
+        <div class="bg-gray-400 shadow-md rounded p-4 mt-2">
           <p><strong>Disk Usage:</strong><p id="disk">{{diskUsage}}</p></p>
         </div>
-        <div class="bg-white shadow-md rounded p-4 mt-2">
+        <div class="bg-gray-400 shadow-md rounded p-4 mt-2">
           <p><strong>Network:</strong><p id="network">{{networkUsage}}</p></p>
         </div>
         {{#hasContainers}}
-        <div class="bg-white shadow-md rounded p-4 mt-2">
+        <div class="bg-gray-400 shadow-md rounded p-4 mt-2">
           <p><strong>Docker Containers Running: </strong>{{docker}}</p>
         </div>
-        <div class="bg-white shadow-md rounded p-4 mt-2">
+        <div class="bg-gray-400 shadow-md rounded p-4 mt-2">
           <div><strong>Docker Name and IP:</strong></div>
           {{#containers}}
           <p>{{.}}</p>

@@ -6,17 +6,20 @@ std::vector<std::string> msgs;
 int main() {
     crow::SimpleApp app;
     std::future<std::string> tracerouteFuture;
-    std::vector<Stats> stats{getStats()};
+    std::vector<Stats> stats;
     std::vector<DockerConfig> config;
-    parseResponse(stats);
-    dockerHealth(stats);
-#ifndef __APPLE__
-    std::string command{addCpuUsage(stats)};
-#endif
     CROW_ROUTE(app, "/")
     ([&stats] {
         crow::mustache::context ctx;
         std::vector<std::string> details;
+        stats.clear();
+        Stats::setBoolean(false);
+        getStats(stats);
+        parseResponse(stats);
+        dockerHealth(stats);
+#ifndef __APPLE__
+        std::string command{addCpuUsage(stats)};
+#endif
         bool hasContainers = false;
         int count = 0;
         for (const auto& stat : stats) {
@@ -85,24 +88,26 @@ int main() {
     CROW_ROUTE(app, "/docker")
     ([&stats, &config] {
         crow::mustache::context ctx;
-        std::vector<std::string> details;
+        std::vector<crow::json::wvalue> containers;
         config.clear();
         if (Stats::getBoolean()) {
             dockerStats(stats, config);
             for (const auto& stat : config) {
-                details.emplace_back("Container Id: " + stat.containerid);
-                details.emplace_back("Name: " + stat.name);
-                details.emplace_back("Created At: " + stat.created);
-                details.emplace_back("IP: " + stat.ipaddress);
-                details.emplace_back("Log Path: " + stat.logpath);
-                details.emplace_back("Log Type: " + stat.logtype);
-                details.emplace_back("Port: " + stat.port);
-                details.emplace_back("Memory: " + stat.memory);
-                details.emplace_back("Mount Destination: " + stat.mount_destination);
-                details.emplace_back("Mount Source: " + stat.mount_source);
+                crow::json::wvalue ctxContainer;
+                ctxContainer["containerId"] = stat.containerid;
+                ctxContainer["name"] = stat.name;
+                ctxContainer["created"] = stat.created;
+                ctxContainer["ip"] = stat.ipaddress;
+                ctxContainer["logPath"] = stat.logpath;
+                ctxContainer["logType"] = stat.logtype;
+                ctxContainer["port"] = stat.port;
+                ctxContainer["memory"] = stat.memory;
+                ctxContainer["mountDestination"] = stat.mount_destination;
+                ctxContainer["mountSource"] = stat.mount_source;
+                containers.emplace_back(ctxContainer);
             }
             ctx["hasContainers"] = true;
-            ctx["containers"] = details;
+            ctx["containers"] = crow::json::wvalue(containers);
         } else {
             ctx["docker"] = "Docker is not running";
             ctx["noContainers"] = true;
