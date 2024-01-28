@@ -8,6 +8,7 @@ int main() {
     std::future<std::string> tracerouteFuture;
     std::vector<Stats> stats;
     std::vector<DockerConfig> config;
+    std::string command;
     CROW_ROUTE(app, "/")
     ([&stats] {
         crow::mustache::context ctx;
@@ -18,7 +19,7 @@ int main() {
         parseResponse(stats);
         dockerHealth(stats);
 #ifndef __APPLE__
-        std::string command{addCpuUsage(stats)};
+        command = addCpuUsage(stats);
 #endif
         bool hasContainers = false;
         int count = 0;
