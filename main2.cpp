@@ -10,7 +10,7 @@ int main() {
     std::vector<DockerConfig> config;
     std::string command;
     CROW_ROUTE(app, "/")
-    ([&stats] {
+    ([&stats, &command] {
         crow::mustache::context ctx;
         std::vector<std::string> details;
         stats.clear();
