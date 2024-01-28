@@ -32,13 +32,13 @@ void streamParser(const std::string& ids, std::vector<Stats>& docker) {
         docker.emplace_back("containerId", value);
     }
 }
-void streamParser(const std::string& results, std::vector<DockerConfig>& config, std::string containerid, bool boolean) {
+void streamParser(const std::string& results, std::vector<DockerConfig>& config, std::string containerid, std::string& execute) {
     std::istringstream iss(results);
     std::string value;
     DockerConfig temp;
     temp.containerid = containerid;
     int count = 0;
-    if (boolean) {
+    if (execute == "logpath") {
         while (iss >> value) {
             switch (count) {
                 case 0:
@@ -73,7 +73,7 @@ void streamParser(const std::string& results, std::vector<DockerConfig>& config,
                 c.port = temp.port;
             }
         }
-    } else {
+    } else if (execute == "ip") {
         while (iss >> value) {
             switch (count) {
                 case 0:
@@ -128,6 +128,30 @@ void streamParser(const std::string& results, std::vector<DockerConfig>& config,
             count++;
         }
         config.emplace_back(temp);
+    } else {
+        while (iss >> value) {
+            switch (count) {
+                case 0: {
+                    if (!value.empty()) {
+                        temp.mount_source = value;
+                    }
+                    break;
+                }
+                case 1: {
+                    if (!value.empty()) {
+                        temp.mount_destination = value;
+                    }
+                    break;
+                }
+            }
+            count++;
+        }
+        for (auto& c : config) {
+            if (c.containerid == containerid) {
+                c.mount_source = temp.mount_source;
+                c.mount_destination = temp.mount_destination;
+            }
+        }
     }
 }
 
@@ -143,16 +167,22 @@ void dockerHealth(std::vector<Stats>& docker) {
 void dockerStats(std::vector<Stats>& stats, std::vector<DockerConfig>& config) {
     std::string command;
     std::string dockerStats;
+    std::string ex;
     for (const auto& stat : stats) {
         if (stat.getName() == "containerId" && stat.getValue() != Stats::getAgent()) {
             command = "docker inspect " + stat.getValue() + " -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}} " +
-                      " {{.Name}} {{.Created}} {{.HostConfig.LogConfig.Type}} " + "{{.HostConfig.Memory}} " + "{{range.Mounts}} " +
-                      " {{ .Source }} {{.Destination}}{{ end }}'";
+                      " {{.Name}} {{.Created}} {{.HostConfig.LogConfig.Type}} {{.HostConfig.Memory}}'";
             dockerStats = execCommand(command.c_str(), std::bitset<4>{0b1010});
-            streamParser(dockerStats, config, stat.getValue(), false);
+            ex = "ip";
+            streamParser(dockerStats, config, stat.getValue(), ex);
             command = "docker inspect " + stat.getValue() + " -f '{{.LogPath}} {{.HostConfig.PortBindings}}'";
             dockerStats = execCommand(command.c_str(), std::bitset<4>{0b1010});
-            streamParser(dockerStats, config, stat.getValue(), true);
+            ex = "logpath";
+            streamParser(dockerStats, config, stat.getValue(), ex);
+            command = "docker inspect " + stat.getValue() + " -f '{{range.Mounts}} {{.Source}} {{.Destination}}{{end}}'";
+            dockerStats = execCommand(command.c_str(), std::bitset<4>{0b1010});
+            ex = "mount";
+            streamParser(dockerStats, config, stat.getValue(), ex);
         }
     }
 }
