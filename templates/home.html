@@ -11,7 +11,10 @@
         <p class="bg-gray-400 shadow-md rounded p-4 mt-2"><strong>OS:</strong> {{osInfo}}</p>
         <p class="bg-gray-400 shadow-md rounded p-4 mt-2"><strong>OS Version:</strong> {{osVersion}}</p>
         <p class="bg-gray-400 shadow-md rounded p-4 mt-2"><strong>Hostname:</strong> {{hostname}}</p>
-        <p class="bg-gray-400 shadow-md rounded p-4 mt-2"><strong>Memory:</strong> {{memory}}</p>
+        <p class="bg-gray-400 shadow-md rounded p-4 mt-2"><strong>Memory:</strong> {{memorytotal}}</p>
+        <div class="bg-gray-400 shadow-md rounded p-4 mt-2">
+          <p><strong>Memory Usage:</strong><p id="memory"> {{memoryUsage}}</p></p>
+        </div>
         <p class="bg-gray-400 shadow-md rounded p-4 mt-2"><strong>CPU Count:</strong> {{cpuCount}}</p>
         <p class="bg-gray-400 shadow-md rounded p-4 mt-2"><strong>Physical CPU Cores:</strong> {{cpuCores}}</p>
         <p class="bg-gray-400 shadow-md rounded p-4 mt-2"><strong>Logical CPU Threads:</strong> {{cpuThreads}}</p>
@@ -19,18 +22,17 @@
           <p><strong>Disk:</strong></p>
           {{{disk}}}
         </div>
-        <p class="bg-gray-400 shadow-md rounded p-4 mt-2"><strong>Uptime:</strong> {{uptime}}</p>
-        <div class="bg-gray-400 shadow-md rounded p-4 mt-2">
-          <p><strong>CPU:</strong><p id="cpu">{{cpuUsage}}</p></p>
-        </div>
-        <div class="bg-gray-400 shadow-md rounded p-4 mt-2">
-          <p><strong>Memory Usage:</strong><p id="memory">{{memoryUsage}}</p></p>
-        </div>
         <div class="bg-gray-400 shadow-md rounded p-4 mt-2">
           <p><strong>Disk Usage:</strong><p id="disk">{{diskUsage}}</p></p>
         </div>
         <div class="bg-gray-400 shadow-md rounded p-4 mt-2">
-          <p><strong>Network:</strong><p id="network">{{networkUsage}}</p></p>
+          <p><strong>Uptime:</strong><p id="uptime">{{uptime}}</p></p>
+        </div>
+        <div class="bg-gray-400 shadow-md rounded p-4 mt-2">
+          <p><strong>CPU Usage:</strong><p id="cpu">{{cpuUsage}}</p></p>
+        </div>   
+        <div class="bg-gray-400 shadow-md rounded p-4 mt-2">
+          <p><strong>Network:</strong><p id="network">{{network}}</p></p>
         </div>
         {{#hasContainers}}
         <div class="bg-gray-400 shadow-md rounded p-4 mt-2">
@@ -58,7 +60,8 @@
             document.getElementById('cpu').innerHTML = data.cpuUsage;
             document.getElementById('memory').innerHTML = data.memoryUsage;
             document.getElementById('disk').innerHTML = data.diskUsage;
-            document.getElementById('network').innerHTML = data.networkUsage;
+            document.getElementById('network').innerHTML = data.network;
+            document.getElementById('uptime').innerHTML = data.uptime;
           } else {
             console.log("no data");
           }

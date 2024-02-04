@@ -1,39 +1,38 @@
 #include "crow.h"
 #include "stats.h"
 
-std::vector<std::string> msgs;
-
 int main() {
     crow::SimpleApp app;
     std::future<std::string> tracerouteFuture;
-    std::vector<Stats> stats;
+    Stats stats;
     std::vector<DockerConfig> config;
     std::string command;
     CROW_ROUTE(app, "/")
     ([&stats, &command] {
         crow::mustache::context ctx;
         std::vector<std::string> details;
-        stats.clear();
         Stats::setBoolean(false);
-        getStats(stats);
-        parseResponse(stats);
+        stats.containerID.clear();
+        stats.containerInfo.clear();
+        getStats(stats, ctx);
         dockerHealth(stats);
 #ifndef __APPLE__
         command = addCpuUsage(stats);
+        ctx["cpuUsage"] = stats.cpuUsage;
 #endif
         bool hasContainers = false;
         int count = 0;
-        for (const auto& stat : stats) {
-            if (stat.getName() == "containerId") {
-                hasContainers = true;
-                count++;
-                ctx["docker"] = count;
-            } else if (stat.getName() == "name") {
-                details.emplace_back(stat.getValue());
-            } else {
-                ctx[stat.getName()] = stat.getValue();
+        if (!stats.containerID.empty()) {
+            hasContainers = true;
+            count = stats.containerID.size();
+            ctx["docker"] = count;
+        }
+        if (!stats.containerInfo.empty()) {
+            for (auto& stat : stats.containerInfo) {
+                details.emplace_back(stat);
             }
         }
+        ctx["disk"] = stats.disk;
         ctx["hasContainers"] = hasContainers;
         if (hasContainers) {
             ctx["containers"] = details;
@@ -58,13 +57,12 @@ int main() {
         return crow::response(202);
     });
 #ifdef __APPLE__
-    CROW_ROUTE(app, "/stats").methods("POST"_method)([]() {
+    CROW_ROUTE(app, "/stats").methods("POST"_method)([&stats]() {
         crow::mustache::context ctx;
-        ctx["cpuUsage"] = execCommand("top -l 1 | grep CPU", std::bitset<4>{0b0100});
-        ctx["uptime"] = execCommand("uptime", std::bitset<4>{0b0000});
-        ctx["memoryUsage"] = execCommand("top -l 1 | grep PhysMem", std::bitset<4>{0b0000});
-        ctx["diskUsage"] = execCommand("top -l 1 | grep Disk", std::bitset<4>{0b0100});
-        ctx["networkUsage"] = execCommand("top -l 1 | grep Network", std::bitset<4>{0b0000});
+        std::string result = execCommand("uptime && top -l 1 | awk '/PhysMem/{physMem=$0} /Network/{network=$0} /CPU/ && !cpu {cpu=$0} /Disk/{disk=$0} END{print "
+                                         "physMem; print network; print cpu; print disk}'",
+                                         std::bitset<4>{0b0000});
+        parseStats(stats, result, false, ctx);
         return ctx;
     });
 #else
@@ -73,6 +71,7 @@ int main() {
         ctx["cpuUsage"] = execCommand(command.c_str(), std::bitset<4>{0b0010});
         ctx["uptime"] = execCommand("uptime", std::bitset<4>{0b0000});
         ctx["disk"] = execCommand("df -h", std::bitset<4>{0b0010});
+        ctx["memoryfree"] = execCommand("cat /proc/meminfo | grep 'MemFree' | awk -F': ' '{print $2/1024}'", std::bitset<4>{0b0010});
         return ctx;
     });
 #endif

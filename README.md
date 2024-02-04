@@ -9,3 +9,4 @@ Added routes and refresh of main components for mac and linux <br />
 Added docker image for amazon linux <br />
 Added initial docker info <br />
 Added docker page <br />
+Changed command execution and context <br />

@@ -7,29 +7,27 @@ std::string getContainerIds() {
     return containerIds;
 }
 
-void getNameandIP(std::vector<Stats>& docker) {
-    std::vector<Stats> temp;
+void getNameandIP(Stats& docker) {
     std::string command;
     std::string dockerStats;
-    for (const auto& stat : docker) {
-        if (stat.getName() == "containerId") {
-            command = "docker inspect " + stat.getValue() + " -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}} {{.Name}}' | awk -F'/' '{print $1 $2}'";
+    if (!docker.containerID.empty()) {
+        for (const auto& stat : docker.containerID) {
+            command = "docker inspect " + stat + " -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}} {{.Name}}' | awk -F'/' '{print $1 $2}'";
             dockerStats = execCommand(command.c_str(), std::bitset<4>{0b0000});
             if (dockerStats.find("agent") != std::string::npos) {
                 std::cout << "ecs-agent" << dockerStats << std::endl;
-                Stats::setAgent(stat.getValue());
+                Stats::setAgent(stat);
             }
-            temp.emplace_back("name", dockerStats);
+            docker.containerInfo.emplace_back(dockerStats);
         }
     }
-    docker.insert(docker.end(), temp.begin(), temp.end());
 }
 
-void streamParser(const std::string& ids, std::vector<Stats>& docker) {
+void streamParser(const std::string& ids, Stats& docker) {
     std::istringstream iss(ids);
     std::string value;
     while (iss >> value) {
-        docker.emplace_back("containerId", value);
+        docker.containerID.emplace_back(value);
     }
 }
 void streamParser(const std::string& results, std::vector<DockerConfig>& config, std::string containerid, std::string& execute) {
@@ -155,7 +153,7 @@ void streamParser(const std::string& results, std::vector<DockerConfig>& config,
     }
 }
 
-void dockerHealth(std::vector<Stats>& docker) {
+void dockerHealth(Stats& docker) {
     std::string containerIds{getContainerIds()};
     if (!containerIds.empty()) {
         streamParser(containerIds, docker);
@@ -164,25 +162,25 @@ void dockerHealth(std::vector<Stats>& docker) {
     }
 }
 
-void dockerStats(std::vector<Stats>& stats, std::vector<DockerConfig>& config) {
+void dockerStats(Stats& stats, std::vector<DockerConfig>& config) {
     std::string command;
     std::string dockerStats;
     std::string ex;
-    for (const auto& stat : stats) {
-        if (stat.getName() == "containerId" && stat.getValue() != Stats::getAgent()) {
-            command = "docker inspect " + stat.getValue() + " -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}} " +
+    for (const auto& stat : stats.containerID) {
+        if (stat != Stats::getAgent()) {
+            command = "docker inspect " + stat + " -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}} " +
                       " {{.Name}} {{.Created}} {{.HostConfig.LogConfig.Type}} {{.HostConfig.Memory}}'";
             dockerStats = execCommand(command.c_str(), std::bitset<4>{0b1010});
             ex = "ip";
-            streamParser(dockerStats, config, stat.getValue(), ex);
-            command = "docker inspect " + stat.getValue() + " -f '{{.LogPath}} {{.HostConfig.PortBindings}}'";
+            streamParser(dockerStats, config, stat, ex);
+            command = "docker inspect " + stat + " -f '{{.LogPath}} {{.HostConfig.PortBindings}}'";
             dockerStats = execCommand(command.c_str(), std::bitset<4>{0b1010});
             ex = "logpath";
-            streamParser(dockerStats, config, stat.getValue(), ex);
-            command = "docker inspect " + stat.getValue() + " -f '{{range.Mounts}} {{.Source}} {{.Destination}}{{end}}'";
+            streamParser(dockerStats, config, stat, ex);
+            command = "docker inspect " + stat + " -f '{{range.Mounts}} {{.Source}} {{.Destination}}{{end}}'";
             dockerStats = execCommand(command.c_str(), std::bitset<4>{0b1010});
             ex = "mount";
-            streamParser(dockerStats, config, stat.getValue(), ex);
+            streamParser(dockerStats, config, stat, ex);
         }
     }
 }
