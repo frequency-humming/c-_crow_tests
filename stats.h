@@ -7,11 +7,10 @@
 #include <future>
 #include <iomanip>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
-
-std::future<std::string> runTracerouteAsync(const std::string& endpoint);
 
 class Stats {
     public:
@@ -67,6 +66,29 @@ class DockerConfig {
         DockerConfig() = default;
 };
 
+class MetricDetails {
+    public:
+        std::string hostname = "No Data";
+        std::string city;
+        std::string region;
+        std::string country;
+        std::string org = "No Data";
+
+        MetricDetails() = default;
+};
+
+class Metrics {
+    public:
+        std::map<std::string, int> ip;
+        std::map<std::string, MetricDetails> info;
+
+        Metrics() = default;
+
+        void setIP(const std::string& val) {
+            ip[val]++;
+        }
+};
+
 std::string execCommand(const char* cmd, std::bitset<4> v);
 void getStats(Stats& stats, crow::mustache::context& ctx);
 void parseResponse(Stats& stats, crow::mustache::context& ctx);
@@ -74,5 +96,6 @@ void parseStats(Stats& stats, std::string& results, bool boolean, crow::mustache
 std::string addCpuUsage(Stats& stats);
 void dockerHealth(Stats& stats);
 void dockerStats(Stats& stats, std::vector<DockerConfig>& config);
-
+void getMetrics(Metrics& metric);
+void parseIP(Metrics& metric);
 #endif

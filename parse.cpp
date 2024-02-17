@@ -2,6 +2,39 @@
 #include "stats.h"
 #include <regex>
 
+void parseIP(Metrics& metric) {
+    for (auto pair : metric.ip) {
+        std::string value;
+        int count = 0;
+        MetricDetails info;
+        std::string cmd = "curl -s -S https://ipinfo.io/" + pair.first;
+        std::string results = execCommand(cmd.c_str(), std::bitset<4>{0b0000});
+        std::istringstream iss(results);
+        while (std::getline(iss, value)) {
+            size_t t = value.find(':');
+            if (t != std::string::npos) {
+                switch (count) {
+                    case 1:
+                        info.hostname = value.substr(t + 1);
+                        break;
+                    case 2:
+                        info.city = value.substr(t + 1);
+                        break;
+                    case 3:
+                        info.region = value.substr(t + 1);
+                        break;
+                    case 4:
+                        info.country = value.substr(t + 1);
+                        break;
+                    case 6:
+                        info.org = value.substr(t + 1);
+                }
+                count++;
+            }
+        }
+        metric.info.emplace(pair.first, info);
+    }
+}
 void parseResponse(Stats& stats, std::string& memory, crow::mustache::context& ctx) {
     long number{};
     std::regex non_digit("[^0-9]");

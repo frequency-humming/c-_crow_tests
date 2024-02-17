@@ -6,11 +6,34 @@
 #include <stdexcept>
 #include <unistd.h>
 
+void getMetrics(Metrics& metric) {
+    std::string info;
+    std::string command;
+    std::ifstream file("/var/log/messages");
+    std::string line;
+    std::regex pattern(R"(SRC=([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+))");
+
+    if (!file.is_open()) {
+        std::cerr << "Error opening file" << std::endl;
+    }
+
+    while (std::getline(file, line)) {
+        if (line.find("New HTTPS") != std::string::npos) {
+            std::smatch matches;
+            if (std::regex_search(line, matches, pattern) && matches.size() > 1) {
+                metric.setIP(matches[1].str());
+            }
+        }
+    }
+    file.close();
+    parseIP(metric);
+}
+
 void getStats(Stats& stats, crow::mustache::context& ctx) {
     std::string result;
 #ifdef __APPLE__
     result = execCommand("sysctl -n machdep.cpu.brand_string hw.ncpu hw.physicalcpu hw.logicalcpu hw.memsize && sw_vers -productName && sw_vers -productVersion && "
-                         "hostname && uptime && top -l 1 | awk '/PhysMem/{physMem=$0} /Network/{network=$0} /CPU/ && !cpu {cpu=$0} /Disk/{disk=$0} END{print "
+                         "hostname && uptime && top -l 1 | awk '/PhysMem/{physMem=$0} /Network/{network=$0} /CPU/ && !cpu {cpu=$0} /Disk/ && !disk {disk=$0} END{print "
                          "physMem; print network; print cpu; print disk}'",
                          std::bitset<4>{0b0000});
     parseStats(stats, result, true, ctx);
@@ -38,17 +61,6 @@ void getStats(Stats& stats, crow::mustache::context& ctx) {
 #endif
 }
 
-std::future<std::string> runTracerouteAsync(const std::string& endpoint) {
-    return std::async(std::launch::async, [endpoint]() {
-        try {
-            std::string command = "traceroute -m 10 " + endpoint;
-            return execCommand(command.c_str(), std::bitset<4>{0b0001});
-        } catch (const std::runtime_error& e) {
-            std::cerr << "Traceroute Error: " << e.what() << std::endl;
-            return "Traceroute failed: " + std::string(e.what());
-        }
-    });
-}
 std::string addCpuUsage(Stats& stats) {
     int parseResponse = 5;
     parseResponse += std::stoi(stats.cpucount);
