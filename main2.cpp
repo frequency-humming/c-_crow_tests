@@ -10,9 +10,7 @@ int main() {
     std::future<void> metricsFuture;
     CROW_ROUTE(app, "/")
     ([&stats, &command, &metrics, &metricsFuture] {
-#ifndef __APPLE__
         metricsFuture = std::async(std::launch::async, [&metrics] { getMetrics(metrics); });
-#endif
         crow::mustache::context ctx;
         std::vector<std::string> details;
         Stats::setBoolean(false);
@@ -55,15 +53,17 @@ int main() {
         std::vector<crow::json::wvalue> containers;
         if (metricsFuture.valid() && metricsFuture.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
             for (auto& pair : metrics.ip) {
-                std::cout << "here" << std::endl;
-                crow::json::wvalue ctxMetric;
-                ctxMetric["metric"] = "IP : " + pair.first + " Count: " + std::to_string(pair.second);
-                ctxMetric["hostname"] = metrics.info[pair.first].hostname;
-                ctxMetric["city"] = metrics.info[pair.first].city;
-                ctxMetric["region"] = metrics.info[pair.first].region;
-                ctxMetric["country"] = metrics.info[pair.first].country;
-                ctxMetric["org"] = metrics.info[pair.first].org;
-                containers.emplace_back(ctxMetric);
+                if (pair.second >= 10) {
+                    crow::json::wvalue ctxMetric;
+                    ctxMetric["metric"] = "IP : " + pair.first + " Count: " + std::to_string(pair.second);
+                    ctxMetric["hostname"] = metrics.info[pair.first].hostname;
+                    ctxMetric["city"] = metrics.info[pair.first].city;
+                    ctxMetric["region"] = metrics.info[pair.first].region;
+                    ctxMetric["country"] = metrics.info[pair.first].country;
+                    ctxMetric["org"] = metrics.info[pair.first].org;
+                    ctxMetric["date"] = *metrics.dates[pair.first].begin();
+                    containers.emplace_back(ctxMetric);
+                }
             }
         } else {
             crow::json::wvalue ctxMetric;

@@ -6,26 +6,50 @@
 #include <stdexcept>
 #include <unistd.h>
 
+std::string getDate() {
+    std::string date = execCommand("date '+%b %d'", std::bitset<4>{0b0000});
+    return date;
+}
+
 void getMetrics(Metrics& metric) {
+    std::string date;
+    if (Metrics::metricFlag) {
+        date = getDate();
+    }
     std::string info;
     std::string command;
-    std::ifstream file("/var/log/messages");
+    std::ifstream file("./messages.log");
     std::string line;
     std::regex pattern(R"(SRC=([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+))");
 
     if (!file.is_open()) {
         std::cerr << "Error opening file" << std::endl;
     }
-
-    while (std::getline(file, line)) {
-        if (line.find("New HTTPS") != std::string::npos) {
-            std::smatch matches;
-            if (std::regex_search(line, matches, pattern) && matches.size() > 1) {
-                metric.setIP(matches[1].str());
+    if (Metrics::metricFlag) {
+        while (std::getline(file, line)) {
+            if (line.find(date) != std::string::npos) {
+                if (line.find("New HTTPS") != std::string::npos) {
+                    std::smatch matches;
+                    if (std::regex_search(line, matches, pattern) && matches.size() > 1) {
+                        metric.setIP(matches[1].str());
+                        metric.setDates(matches[1].str(), date);
+                    }
+                }
+            }
+        }
+    } else {
+        while (std::getline(file, line)) {
+            if (line.find("New HTTPS") != std::string::npos) {
+                std::smatch matches;
+                if (std::regex_search(line, matches, pattern) && matches.size() > 1) {
+                    metric.setIP(matches[1].str());
+                    metric.setDates(matches[1].str(), line.substr(0, 6));
+                }
             }
         }
     }
     file.close();
+    Metrics::metricFlag = true;
     parseIP(metric);
 }
 

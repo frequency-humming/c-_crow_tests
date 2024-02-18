@@ -4,35 +4,27 @@
 
 void parseIP(Metrics& metric) {
     for (auto pair : metric.ip) {
-        std::string value;
-        int count = 0;
-        MetricDetails info;
-        std::string cmd = "curl -s -S https://ipinfo.io/" + pair.first;
-        std::string results = execCommand(cmd.c_str(), std::bitset<4>{0b0000});
-        std::istringstream iss(results);
-        while (std::getline(iss, value)) {
-            size_t t = value.find(':');
-            if (t != std::string::npos) {
-                switch (count) {
-                    case 1:
-                        info.hostname = value.substr(t + 1);
-                        break;
-                    case 2:
-                        info.city = value.substr(t + 1);
-                        break;
-                    case 3:
-                        info.region = value.substr(t + 1);
-                        break;
-                    case 4:
-                        info.country = value.substr(t + 1);
-                        break;
-                    case 6:
-                        info.org = value.substr(t + 1);
+        if (pair.second >= 10) {
+            std::string value;
+            MetricDetails info;
+            std::string cmd = "curl -s -S https://ipinfo.io/" + pair.first + "?token=" + Config::token;
+            std::string results = execCommand(cmd.c_str(), std::bitset<4>{0b0000});
+            std::istringstream iss(results);
+            while (std::getline(iss, value)) {
+                if (value.find("host") != std::string::npos) {
+                    info.hostname = value.substr(value.find(':') + 1);
+                } else if (value.find("city") != std::string::npos) {
+                    info.city = value.substr(value.find(':') + 1);
+                } else if (value.find("region") != std::string::npos) {
+                    info.region = value.substr(value.find(':') + 1);
+                } else if (value.find("country") != std::string::npos) {
+                    info.country = value.substr(value.find(':') + 1);
+                } else if (value.find("org") != std::string::npos) {
+                    info.org = value.substr(value.find(':') + 1);
                 }
-                count++;
             }
+            metric.info.emplace(pair.first, info);
         }
-        metric.info.emplace(pair.first, info);
     }
 }
 void parseResponse(Stats& stats, std::string& memory, crow::mustache::context& ctx) {

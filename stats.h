@@ -8,9 +8,20 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
+
+std::string execCommand(const char* cmd, std::bitset<4> v);
+
+class Config {
+    public:
+        // std::string today;
+        inline static std::string token = execCommand("echo $token", std::bitset<4>{0b0000});
+
+        Config() = default;
+};
 
 class Stats {
     public:
@@ -81,15 +92,18 @@ class Metrics {
     public:
         std::map<std::string, int> ip;
         std::map<std::string, MetricDetails> info;
-
+        std::map<std::string, std::set<std::string>> dates;
+        inline static bool metricFlag = false;
         Metrics() = default;
 
         void setIP(const std::string& val) {
             ip[val]++;
         }
+        void setDates(const std::string& key, const std::string val) {
+            dates[key].emplace(val);
+        }
 };
 
-std::string execCommand(const char* cmd, std::bitset<4> v);
 void getStats(Stats& stats, crow::mustache::context& ctx);
 void parseResponse(Stats& stats, crow::mustache::context& ctx);
 void parseStats(Stats& stats, std::string& results, bool boolean, crow::mustache::context& ctx);
