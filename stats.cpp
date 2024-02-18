@@ -18,7 +18,7 @@ void getMetrics(Metrics& metric) {
     }
     std::string info;
     std::string command;
-    std::ifstream file("var/log/messages");
+    std::ifstream file("/var/log/messages");
     std::string line;
     std::regex pattern(R"(SRC=([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+))");
 

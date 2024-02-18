@@ -4,7 +4,7 @@
 
 void parseIP(Metrics& metric) {
     for (auto pair : metric.ip) {
-        if (pair.second >= 10) {
+        if (pair.second >= 10 && metric.info[pair.first].country.empty()) {
             std::string value;
             MetricDetails info;
             std::string cmd = "curl -s -S https://ipinfo.io/" + pair.first + "?token=" + Config::token;
