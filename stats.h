@@ -84,7 +84,6 @@ class MetricDetails {
         std::string region;
         std::string country;
         std::string org = "No Data";
-
         MetricDetails() = default;
 };
 
@@ -92,14 +91,14 @@ class Metrics {
     public:
         std::map<std::string, int> ip;
         std::map<std::string, MetricDetails> info;
-        std::map<std::string, std::set<std::string>> dates;
+        std::map<std::string, std::set<std::string, std::greater<>>> dates;
         inline static bool metricFlag = false;
         Metrics() = default;
 
         void setIP(const std::string& val) {
             ip[val]++;
         }
-        void setDates(const std::string& key, const std::string val) {
+        void setDates(const std::string& key, const std::string& val) {
             dates[key].emplace(val);
         }
 };

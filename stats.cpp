@@ -1,6 +1,5 @@
 #include "stats.h"
 #include "crow.h"
-#include <cstdlib>
 #include <iterator>
 #include <memory>
 #include <regex>
@@ -8,32 +7,44 @@
 #include <unistd.h>
 
 std::string getDate() {
-    std::string date = execCommand("date '+%b %d'", std::bitset<4>{0b0000});
+    std::string date = execCommand("date '+%b %d'", std::bitset<4>{0b0100});
     return date;
 }
 
 void getMetrics(Metrics& metric) {
     std::string date;
+    MetricDetails details;
     if (Metrics::metricFlag) {
-        date = getDate();
+        date = getDate().substr(0, 6);
     }
     std::string info;
     std::string command;
     std::ifstream file("/var/log/messages");
     std::string line;
-    std::regex pattern(R"(SRC=([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+))");
+    std::regex pattern_IP(R"(SRC=([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+))");
+    std::regex pattern_ID(R"(ID=(\d+))");
 
     if (!file.is_open()) {
         std::cerr << "Error opening file" << std::endl;
     }
     if (Metrics::metricFlag) {
+        std::cout << date << std::endl;
         while (std::getline(file, line)) {
+            std::string temp = line.substr(0, 6);
             if (line.find(date) != std::string::npos) {
                 if (line.find("New HTTPS") != std::string::npos) {
                     std::smatch matches;
-                    if (std::regex_search(line, matches, pattern) && matches.size() > 1) {
-                        metric.setIP(matches[1].str());
-                        metric.setDates(matches[1].str(), date);
+                    if (std::regex_search(line, matches, pattern_IP) && matches.size() > 1) {
+                        auto key = metric.dates.find(matches[1].str());
+                        if (key != metric.dates.end()) {
+                            if (key->second.find(line.substr(0, 15)) == key->second.end()) {
+                                metric.setIP(matches[1].str());
+                                metric.setDates(matches[1].str(), line.substr(0, 15));
+                            }
+                        } else {
+                            metric.setIP(matches[1].str());
+                            metric.setDates(matches[1].str(), line.substr(0, 15));
+                        }
                     }
                 }
             }
@@ -42,9 +53,9 @@ void getMetrics(Metrics& metric) {
         while (std::getline(file, line)) {
             if (line.find("New HTTPS") != std::string::npos) {
                 std::smatch matches;
-                if (std::regex_search(line, matches, pattern) && matches.size() > 1) {
+                if (std::regex_search(line, matches, pattern_IP) && matches.size() > 1) {
                     metric.setIP(matches[1].str());
-                    metric.setDates(matches[1].str(), line.substr(0, 6));
+                    metric.setDates(matches[1].str(), line.substr(0, 15));
                 }
             }
         }
