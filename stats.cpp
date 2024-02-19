@@ -1,5 +1,6 @@
 #include "stats.h"
 #include "crow.h"
+#include <cstdlib>
 #include <iterator>
 #include <memory>
 #include <regex>

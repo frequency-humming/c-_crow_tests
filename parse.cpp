@@ -3,27 +3,27 @@
 #include <regex>
 
 void parseIP(Metrics& metric) {
-    for (auto pair : metric.ip) {
+    for (const auto& pair : metric.ip) {
         if (pair.second >= 10 && metric.info[pair.first].country.empty()) {
             std::string value;
-            MetricDetails info;
+            MetricDetails details;
             std::string cmd = "curl -s -S https://ipinfo.io/" + pair.first + "?token=" + Config::token;
             std::string results = execCommand(cmd.c_str(), std::bitset<4>{0b0000});
             std::istringstream iss(results);
             while (std::getline(iss, value)) {
                 if (value.find("host") != std::string::npos) {
-                    info.hostname = value.substr(value.find(':') + 1);
+                    details.hostname = value.substr(value.find(':') + 1);
                 } else if (value.find("city") != std::string::npos) {
-                    info.city = value.substr(value.find(':') + 1);
+                    details.city = value.substr(value.find(':') + 1);
                 } else if (value.find("region") != std::string::npos) {
-                    info.region = value.substr(value.find(':') + 1);
+                    details.region = value.substr(value.find(':') + 1);
                 } else if (value.find("country") != std::string::npos) {
-                    info.country = value.substr(value.find(':') + 1);
+                    details.country = value.substr(value.find(':') + 1);
                 } else if (value.find("org") != std::string::npos) {
-                    info.org = value.substr(value.find(':') + 1);
+                    details.org = value.substr(value.find(':') + 1);
                 }
             }
-            metric.info.emplace(pair.first, info);
+            metric.info[pair.first] = details;
         }
     }
 }
