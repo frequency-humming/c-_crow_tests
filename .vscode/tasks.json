@@ -24,7 +24,10 @@
                 "-I${workspaceFolder}",
                 "-I./libraries/crow/include/",
                 "-I/opt/homebrew/Cellar/asio/1.28.1/include",
-                "${fileDirname}/**.cpp",
+                "${fileDirname}/parse.cpp",
+                "${fileDirname}/docker.cpp",
+                "${fileDirname}/stats.cpp",
+                "${fileDirname}/main2.cpp",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}"
             ],
