@@ -14,6 +14,6 @@ COPY messages.log /var/log/messages.log
 # need this command to test 
 # docker run -v /var/run/docker.sock:/var/run/docker.sock linux
 RUN g++ -std=c++17 -O2 -DNDEBUG -I/asio/asio/include -I./libraries/crow/include/ -I. main2.cpp stats.cpp docker.cpp parse.cpp -o main2 -lpthread
-
+# in linux terminal run -> sudo g++ ... to compile 
 EXPOSE 18080
 CMD ["./main2"]

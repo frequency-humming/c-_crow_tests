@@ -7,7 +7,7 @@
 #include <unistd.h>
 
 std::string getDate() {
-    std::string date = execCommand("date '+%b %d'", std::bitset<4>{0b0100});
+    std::string date = execCommand("date", std::bitset<4>{0b0100});
     return date;
 }
 
@@ -15,7 +15,7 @@ void getMetrics(Metrics& metric) {
     std::string date;
     MetricDetails details;
     if (Metrics::metricFlag) {
-        date = getDate().substr(0, 6);
+        date = getDate().substr(4, 7);
     }
     std::string info;
     std::string command;
