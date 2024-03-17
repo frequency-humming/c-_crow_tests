@@ -61,7 +61,7 @@ int main() {
                     ctxMetric["region"] = metrics.info[pair.first].region;
                     ctxMetric["country"] = metrics.info[pair.first].country;
                     ctxMetric["org"] = metrics.info[pair.first].org;
-                    ctxMetric["date"] = *metrics.dates[pair.first].begin();
+                    ctxMetric["date"] = metrics.dates[pair.first];
                     containers.emplace_back(ctxMetric);
                 }
             }

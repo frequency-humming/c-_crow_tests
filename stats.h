@@ -19,7 +19,9 @@ class Config {
     public:
         // std::string today;
         inline static std::string token = execCommand("echo $token", std::bitset<4>{0b0000});
-
+        inline static std::string journald = execCommand("systemctl is-active systemd-journald", std::bitset<4>{0b0000});
+        inline static std::string rsyslog = execCommand("systemctl is-active rsyslog", std::bitset<4>{0b0000});
+        inline static std::string nginx = execCommand("systemctl is-active nginx", std::bitset<4>{0b0000});
         Config() = default;
 };
 
@@ -91,7 +93,7 @@ class Metrics {
     public:
         std::map<std::string, int> ip;
         std::map<std::string, MetricDetails> info;
-        std::map<std::string, std::set<std::string, std::greater<>>> dates;
+        std::map<std::string, std::string> dates;
         inline static bool metricFlag = false;
         Metrics() = default;
 
@@ -99,7 +101,7 @@ class Metrics {
             ip[val]++;
         }
         void setDates(const std::string& key, const std::string& val) {
-            dates[key].emplace(val);
+            dates[key] = val;
         }
 };
 

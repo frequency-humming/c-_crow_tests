@@ -34,17 +34,9 @@ void getMetrics(Metrics& metric) {
             if (line.find(date) != std::string::npos) {
                 if (line.find("New HTTPS") != std::string::npos) {
                     std::smatch matches;
-                    if (std::regex_search(line, matches, pattern_IP) && matches.size() > 1) {
-                        auto key = metric.dates.find(matches[1].str());
-                        if (key != metric.dates.end()) {
-                            if (key->second.find(line.substr(0, 15)) == key->second.end()) {
-                                metric.setIP(matches[1].str());
-                                metric.setDates(matches[1].str(), line.substr(0, 15));
-                            }
-                        } else {
-                            metric.setIP(matches[1].str());
-                            metric.setDates(matches[1].str(), line.substr(0, 15));
-                        }
+                    if (std::regex_search(line, matches, pattern_IP) && matches.size() > 1) {   
+                        metric.setIP(matches[1].str());
+                        metric.setDates(matches[1].str(), line.substr(0, 15));  
                     }
                 }
             }
