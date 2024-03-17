@@ -1,39 +1,40 @@
 #include "crow.h"
 #include "stats.h"
 
-std::vector<std::string> msgs;
-
 int main() {
     crow::SimpleApp app;
-    std::future<std::string> tracerouteFuture;
-    std::vector<Stats> stats;
+    Stats stats;
+    Metrics metrics;
     std::vector<DockerConfig> config;
     std::string command;
+    std::future<void> metricsFuture;
     CROW_ROUTE(app, "/")
-    ([&stats, &command] {
+    ([&stats, &command, &metrics, &metricsFuture] {
+        metricsFuture = std::async(std::launch::async, [&metrics] { getMetrics(metrics); });
         crow::mustache::context ctx;
         std::vector<std::string> details;
-        stats.clear();
         Stats::setBoolean(false);
-        getStats(stats);
-        parseResponse(stats);
+        stats.containerID.clear();
+        stats.containerInfo.clear();
+        getStats(stats, ctx);
         dockerHealth(stats);
 #ifndef __APPLE__
         command = addCpuUsage(stats);
+        ctx["cpuUsage"] = stats.cpuUsage;
 #endif
         bool hasContainers = false;
         int count = 0;
-        for (const auto& stat : stats) {
-            if (stat.getName() == "containerId") {
-                hasContainers = true;
-                count++;
-                ctx["docker"] = count;
-            } else if (stat.getName() == "name") {
-                details.emplace_back(stat.getValue());
-            } else {
-                ctx[stat.getName()] = stat.getValue();
+        if (!stats.containerID.empty()) {
+            hasContainers = true;
+            count = stats.containerID.size();
+            ctx["docker"] = count;
+        }
+        if (!stats.containerInfo.empty()) {
+            for (auto& stat : stats.containerInfo) {
+                details.emplace_back(stat);
             }
         }
+        ctx["disk"] = stats.disk;
         ctx["hasContainers"] = hasContainers;
         if (hasContainers) {
             ctx["containers"] = details;
@@ -46,25 +47,42 @@ int main() {
         return page.render(ctx);
     });
 
-    CROW_ROUTE(app, "/tools")
-    ([] {
-        auto page = crow::mustache::load("trace.html");
-        return page.render();
+    CROW_ROUTE(app, "/metrics")
+    ([&metrics, &metricsFuture] {
+        crow::mustache::context ctx;
+        std::vector<crow::json::wvalue> containers;
+        if (metricsFuture.valid() && metricsFuture.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+            for (auto& pair : metrics.ip) {
+                if (pair.second >= 10) {
+                    crow::json::wvalue ctxMetric;
+                    ctxMetric["metric"] = "IP : " + pair.first + " Count: " + std::to_string(pair.second);
+                    ctxMetric["hostname"] = metrics.info[pair.first].hostname;
+                    ctxMetric["city"] = metrics.info[pair.first].city;
+                    ctxMetric["region"] = metrics.info[pair.first].region;
+                    ctxMetric["country"] = metrics.info[pair.first].country;
+                    ctxMetric["org"] = metrics.info[pair.first].org;
+                    ctxMetric["date"] = *metrics.dates[pair.first].begin();
+                    containers.emplace_back(ctxMetric);
+                }
+            }
+        } else {
+            crow::json::wvalue ctxMetric;
+            ctxMetric["metric"] = "No Data ";
+            containers.emplace_back(ctxMetric);
+        }
+        ctx["containers"] = crow::json::wvalue(containers);
+        auto page = crow::mustache::load("metrics.html");
+        return page.render(ctx);
     });
 
-    CROW_ROUTE(app, "/sendendpoint").methods("POST"_method)([&tracerouteFuture](const crow::request& req) {
-        std::string endpoint = req.body;
-        tracerouteFuture = runTracerouteAsync(endpoint);
-        return crow::response(202);
-    });
 #ifdef __APPLE__
-    CROW_ROUTE(app, "/stats").methods("POST"_method)([]() {
+    CROW_ROUTE(app, "/stats").methods("POST"_method)([&stats]() {
         crow::mustache::context ctx;
-        ctx["cpuUsage"] = execCommand("top -l 1 | grep CPU", std::bitset<4>{0b0100});
-        ctx["uptime"] = execCommand("uptime", std::bitset<4>{0b0000});
-        ctx["memoryUsage"] = execCommand("top -l 1 | grep PhysMem", std::bitset<4>{0b0000});
-        ctx["diskUsage"] = execCommand("top -l 1 | grep Disk", std::bitset<4>{0b0100});
-        ctx["networkUsage"] = execCommand("top -l 1 | grep Network", std::bitset<4>{0b0000});
+        std::string result =
+            execCommand("uptime && top -l 1 | awk '/PhysMem/{physMem=$0} /Network/{network=$0} /CPU/ && !cpu {cpu=$0} /Disk/ && !disk {disk=$0} END{print "
+                        "physMem; print network; print cpu; print disk}'",
+                        std::bitset<4>{0b0000});
+        parseStats(stats, result, false, ctx);
         return ctx;
     });
 #else
@@ -73,18 +91,10 @@ int main() {
         ctx["cpuUsage"] = execCommand(command.c_str(), std::bitset<4>{0b0010});
         ctx["uptime"] = execCommand("uptime", std::bitset<4>{0b0000});
         ctx["disk"] = execCommand("df -h", std::bitset<4>{0b0010});
+        ctx["memoryfree"] = execCommand("cat /proc/meminfo | grep 'MemFree' | awk -F': ' '{print $2/1024}'", std::bitset<4>{0b0010});
         return ctx;
     });
 #endif
-
-    CROW_ROUTE(app, "/results")
-    ([&tracerouteFuture] {
-        if (tracerouteFuture.valid() && tracerouteFuture.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-            return tracerouteFuture.get();
-        } else {
-            return std::string("Traceroute result is still pending...");
-        }
-    });
 
     CROW_ROUTE(app, "/docker")
     ([&stats, &config] {

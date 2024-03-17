@@ -1,81 +1,107 @@
 #include "stats.h"
+#include "crow.h"
 #include <iterator>
 #include <memory>
 #include <regex>
 #include <stdexcept>
 #include <unistd.h>
 
-void getStats(std::vector<Stats>& stats) {
-#ifdef __APPLE__
-    stats.emplace_back("cpuInfo", execCommand("sysctl -n machdep.cpu.brand_string", std::bitset<4>{0b0000}));
-    stats.emplace_back("osInfo", execCommand("sw_vers -productName", std::bitset<4>{0b0000}));
-    stats.emplace_back("osVersion", execCommand("sw_vers -productVersion", std::bitset<4>{0b0000}));
-    stats.emplace_back("hostname", execCommand("hostname", std::bitset<4>{0b0000}));
-    stats.emplace_back("cpuCount", execCommand("sysctl -n hw.ncpu", std::bitset<4>{0b0000}));
-    stats.emplace_back("cpuCores", execCommand("sysctl -n hw.physicalcpu", std::bitset<4>{0b0000}));
-    stats.emplace_back("cpuThreads", execCommand("sysctl -n hw.logicalcpu", std::bitset<4>{0b0000}));
-    stats.emplace_back("disk", execCommand("df -h", std::bitset<4>{0b0010}));
-    stats.emplace_back("uptime", execCommand("uptime", std::bitset<4>{0b0000}));
-    stats.emplace_back("cpuUsage", execCommand("top -l 1 | grep CPU", std::bitset<4>{0b0100}));
-    stats.emplace_back("memoryUsage", execCommand("top -l 1 | grep PhysMem", std::bitset<4>{0b0000}));
-    stats.emplace_back("diskUsage", execCommand("top -l 1 | grep Disk", std::bitset<4>{0b0100}));
-    stats.emplace_back("networkUsage", execCommand("top -l 1 | grep Network", std::bitset<4>{0b0000}));
-#else
-    stats.emplace_back("cpuInfo", execCommand("cat /proc/cpuinfo | grep 'model name' | uniq | awk -F: '{print $2}'", std::bitset<4>{0b0000}));
-    stats.emplace_back("kernel", execCommand("hostnamectl | grep 'Kernel' | awk -F: '{print $2}'", std::bitset<4>{0b0000}));
-    // stats.emplace_back("kernel", execCommand("mpstat -P ALL 1 | head -n 1", std::bitset<4>{0b0000}));
-    stats.emplace_back("osInfo", execCommand("cat /etc/os-release | grep '^NAME=' | awk -F= '{print $2}'", std::bitset<4>{0b0000}));
-    stats.emplace_back("osVersion", execCommand("cat /etc/os-release | grep VERSION_ID | awk -F= '{print $2}'", std::bitset<4>{0b0000}));
-    stats.emplace_back("hostname", execCommand("hostname", std::bitset<4>{0b0000}));
-    stats.emplace_back("cpuCount", execCommand("cat /proc/cpuinfo | grep 'processor' | wc -l", std::bitset<4>{0b0000}));
-    stats.emplace_back("cpuCores", execCommand("nproc --all", std::bitset<4>{0b0000}));
-    stats.emplace_back("disk", execCommand("df -h", std::bitset<4>{0b0010}));
-    stats.emplace_back("uptime", execCommand("uptime", std::bitset<4>{0b0000}));
-    stats.emplace_back("memoryUsage", execCommand("cat /proc/meminfo | grep 'MemTotal' | awk -F: '{print $2}'", std::bitset<4>{0b0000}));
-    stats.emplace_back("networkUsage", execCommand("ip addr | grep -E '^[0-9]+:|inet '", std::bitset<4>{0b1000}));
-#endif
+std::string getDate() {
+    std::string date = execCommand("date", std::bitset<4>{0b0100});
+    return date;
 }
 
-void parseResponse(std::vector<Stats>& stats) {
-#ifdef __APPLE__
-    long number{};
-    std::string memory = execCommand("sysctl hw.memsize", std::bitset<4>{0b0000});
-    std::regex non_digit("[^0-9]");
-    std::string only_digits = std::regex_replace(memory, non_digit, "");
-    if (!only_digits.empty()) {
-        number = std::stoll(only_digits) / 1024 / 1024 / 1024;
-        std::string ram = std::to_string(number) + "GB";
-        stats.emplace_back("memory", ram);
+void getMetrics(Metrics& metric) {
+    std::string date;
+    MetricDetails details;
+    if (Metrics::metricFlag) {
+        date = getDate().substr(4, 7);
+    }
+    std::string info;
+    std::string command;
+    std::ifstream file("/var/log/messages");
+    std::string line;
+    std::regex pattern_IP(R"(SRC=([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+))");
+    std::regex pattern_ID(R"(ID=(\d+))");
+
+    if (!file.is_open()) {
+        std::cerr << "Error opening file" << std::endl;
+    }
+    if (Metrics::metricFlag) {
+        std::cout << date << std::endl;
+        while (std::getline(file, line)) {
+            std::string temp = line.substr(0, 6);
+            if (line.find(date) != std::string::npos) {
+                if (line.find("New HTTPS") != std::string::npos) {
+                    std::smatch matches;
+                    if (std::regex_search(line, matches, pattern_IP) && matches.size() > 1) {
+                        auto key = metric.dates.find(matches[1].str());
+                        if (key != metric.dates.end()) {
+                            if (key->second.find(line.substr(0, 15)) == key->second.end()) {
+                                metric.setIP(matches[1].str());
+                                metric.setDates(matches[1].str(), line.substr(0, 15));
+                            }
+                        } else {
+                            metric.setIP(matches[1].str());
+                            metric.setDates(matches[1].str(), line.substr(0, 15));
+                        }
+                    }
+                }
+            }
+        }
     } else {
-        std::cerr << " Only digits is empty or invalid " << only_digits << std::endl;
-        stats.emplace_back("memory", memory);
+        while (std::getline(file, line)) {
+            if (line.find("New HTTPS") != std::string::npos) {
+                std::smatch matches;
+                if (std::regex_search(line, matches, pattern_IP) && matches.size() > 1) {
+                    metric.setIP(matches[1].str());
+                    metric.setDates(matches[1].str(), line.substr(0, 15));
+                }
+            }
+        }
     }
+    file.close();
+    Metrics::metricFlag = true;
+    parseIP(metric);
+}
+
+void getStats(Stats& stats, crow::mustache::context& ctx) {
+    std::string result;
+#ifdef __APPLE__
+    result = execCommand("sysctl -n machdep.cpu.brand_string hw.ncpu hw.physicalcpu hw.logicalcpu hw.memsize && sw_vers -productName && sw_vers -productVersion && "
+                         "hostname && uptime && top -l 1 | awk '/PhysMem/{physMem=$0} /Network/{network=$0} /CPU/ && !cpu {cpu=$0} /Disk/ && !disk {disk=$0} END{print "
+                         "physMem; print network; print cpu; print disk}'",
+                         std::bitset<4>{0b0000});
+    parseStats(stats, result, true, ctx);
+    stats.disk = execCommand("df -h", std::bitset<4>{0b0010});
 #else
-    stats.emplace_back("memory", execCommand("free -m", std::bitset<4>{0b0110}));
+    std::string command = "cat /proc/cpuinfo | grep 'model name' | uniq | awk -F': ' '{print $2}' ; "
+                          "grep -c 'processor' /proc/cpuinfo ; "
+                          "nproc --all ; "
+                          "hostnamectl | grep 'Kernel' | awk -F: '{print $2}' ; "
+                          "cat /proc/meminfo | grep 'MemFree' | awk -F': ' '{print $2/1024}' ; "
+                          "cat /etc/os-release | grep '^NAME=' | awk -F'=' '{print $2}' ; "
+                          "cat /etc/os-release | grep 'VERSION_ID' | awk -F'=' '{print $2}' ; "
+                          "hostname ; "
+                          "uptime ; "
+                          "cat /proc/meminfo | grep 'MemTotal' | awk -F': ' '{print $2/1024}'";
+    result = execCommand(command.c_str(), std::bitset<4>{0b0000});
+    parseStats(stats, result, true, ctx);
+    stats.memoryUsage = execCommand("free -m", std::bitset<4>{0b0110});
+    ctx["memoryUsage"] = stats.memoryUsage;
+    // stats.emplace_back("kernel", execCommand("hostnamectl | grep 'Kernel' | awk -F: '{print $2}'", std::bitset<4>{0b0000}));
+    // stats.emplace_back("kernel", execCommand("mpstat -P ALL 1 | head -n 1", std::bitset<4>{0b0000}));
+    stats.disk = execCommand("df -h", std::bitset<4>{0b0010});
+    stats.network = execCommand("ip addr | grep -E '^[0-9]+:|inet '", std::bitset<4>{0b1000});
+    ctx["network"] = stats.network;
 #endif
 }
 
-std::future<std::string> runTracerouteAsync(const std::string& endpoint) {
-    return std::async(std::launch::async, [endpoint]() {
-        try {
-            std::string command = "traceroute -m 10 " + endpoint;
-            return execCommand(command.c_str(), std::bitset<4>{0b0001});
-        } catch (const std::runtime_error& e) {
-            std::cerr << "Traceroute Error: " << e.what() << std::endl;
-            return "Traceroute failed: " + std::string(e.what());
-        }
-    });
-}
-std::string addCpuUsage(std::vector<Stats>& stats) {
+std::string addCpuUsage(Stats& stats) {
     int parseResponse = 5;
-    for (const auto& stat : stats) {
-        if (stat.getName() == "cpuCount") {
-            parseResponse += std::stoi(stat.getValue());
-            break;
-        }
-    }
+    parseResponse += std::stoi(stats.cpucount);
     const std::string command{"mpstat -P ALL 1 | head -n " + std::to_string(parseResponse) + " | awk '/^$/ {found=1; next} found'"};
-    stats.emplace_back("cpuUsage", execCommand(command.c_str(), std::bitset<4>{0b0010}));
+    stats.cpuUsage = execCommand(command.c_str(), std::bitset<4>{0b0010});
     return command;
 }
 

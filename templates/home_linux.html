@@ -13,8 +13,8 @@
         <p class="bg-gray-400 shadow-md rounded p-4 mt-2"><strong>Kernel:</strong> {{kernel}}</p>
         <p class="bg-gray-400 shadow-md rounded p-4 mt-2"><strong>Hostname:</strong> {{hostname}}</p>
         <div class="bg-gray-400 shadow-md rounded p-4 mt-2">
-            <p><strong>Memory:</strong></p>
-            {{{memory}}}
+            <p><strong>Memory(Mb):</strong></p>
+            {{{memoryUsage}}}
         </div>
         
         <p class="bg-gray-400 shadow-md rounded p-4 mt-2"><strong>CPU Count:</strong> {{cpuCount}}</p>
@@ -25,10 +25,16 @@
             {{{disk}}}
           </div>
         </div>
-        <p class="bg-gray-400 shadow-md rounded p-4 mt-2"><strong>Memory Usage:</strong> {{memoryUsage}}</p>
-        <p class="bg-gray-400 shadow-md rounded p-4 mt-2" id="uptime"><strong>Uptime:</strong> {{uptime}}</p>
+        <p class="bg-gray-400 shadow-md rounded p-4 mt-2"><strong>Memory Total:</strong> {{memorytotal}}</p>
         <div class="bg-gray-400 shadow-md rounded p-4 mt-2">
-            <p ><strong>CPU Usage:</strong></p>
+          <p><strong>Memory Free:</strong><p id="memoryfree">{{memoryfree}}</p></p>
+        </div>
+        
+        <div class="bg-gray-400 shadow-md rounded p-4 mt-2">
+          <p><strong>Uptime:</strong><p id="uptime">{{uptime}}</p></p>
+        </div>
+        <div class="bg-gray-400 shadow-md rounded p-4 mt-2">
+            <p><strong>CPU Usage:</strong></p>
             <div id="cpu">
               {{{cpuUsage}}}
             </div>    
@@ -46,7 +52,7 @@
         {{/hasContainers}}
         <div class="bg-gray-400 shadow-md rounded p-4 mt-2">
             <p ><strong>Network Usage:</strong></p>
-            {{{networkUsage}}}
+            {{{network}}}
         </div>     
     </div>
     <script>
@@ -57,12 +63,13 @@
             'Content-Type': 'text/plain'
           },
         })
-        .then(response => response.json()) // assuming the server sends back JSON
+        .then(response => response.json())
         .then(data => {
           if(data && data.cpuUsage) {
             document.getElementById('cpu').innerHTML = data.cpuUsage;
             document.getElementById('uptime').innerHTML = data.uptime;
             document.getElementById('disk').innerHTML = data.disk;
+            document.getElementById('memoryfree').innerHTML = data.memoryfree;
           } else {
             console.log("no data");
           }

@@ -1,33 +1,52 @@
 #ifndef STATS_H
 #define STATS_H
 
+#include "crow.h"
 #include <array>
 #include <bitset>
 #include <future>
 #include <iomanip>
 #include <iostream>
+#include <map>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
 
-std::future<std::string> runTracerouteAsync(const std::string& endpoint);
+std::string execCommand(const char* cmd, std::bitset<4> v);
+
+class Config {
+    public:
+        // std::string today;
+        inline static std::string token = execCommand("echo $token", std::bitset<4>{0b0000});
+
+        Config() = default;
+};
 
 class Stats {
-    private:
-        std::string name{};
-        std::string value{};
+    public:
+        std::string cpuinfo{};
+        std::string cpucount{};
+        std::string cpucores{};
+        std::string cputhreads{};
+        std::string kernel{};
+        std::string osinfo{};
+        std::string osversion{};
+        std::string hostname{};
+        std::string uptime{};
+        std::string memorytotal{};
+        std::string memoryfree{};
+        std::string memoryUsage{};
+        std::string network{};
+        std::string diskUsage{};
+        std::string cpuUsage{};
+        std::string disk{};
+        std::vector<std::string> containerID{};
+        std::vector<std::string> containerInfo{};
         inline static bool dockerFlag = false;
         static std::string agent;
 
-    public:
-        Stats(std::string_view name, std::string_view value) : name{name}, value{value} {
-        }
-        std::string getName() const {
-            return name;
-        }
-        std::string getValue() const {
-            return value;
-        }
+        Stats() = default;
         static void setBoolean(bool flag) {
             dockerFlag = flag;
         }
@@ -56,25 +75,40 @@ class DockerConfig {
         std::string mount_destination = "No Data";
 
         DockerConfig() = default;
-        DockerConfig(std::string_view containerid,
-                     std::string_view ipaddress,
-                     std::string_view name,
-                     std::string_view created,
-                     std::string_view logpath,
-                     std::string_view port,
-                     std::string_view porttype,
-                     std::string_view memory,
-                     std::string_view mount_source,
-                     std::string_view mount_destination)
-            : containerid{containerid}, ipaddress{ipaddress}, name{name}, created{created}, logpath{logpath}, logtype{porttype}, port{port}, memory{memory},
-              mount_source{mount_source}, mount_destination{mount_destination} {};
 };
 
-std::string execCommand(const char* cmd, std::bitset<4> v);
-void getStats(std::vector<Stats>& stats);
-void parseResponse(std::vector<Stats>& stats);
-std::string addCpuUsage(std::vector<Stats>& stats);
-void dockerHealth(std::vector<Stats>& stats);
-void dockerStats(std::vector<Stats>& stats, std::vector<DockerConfig>& config);
+class MetricDetails {
+    public:
+        std::string hostname = "No Data";
+        std::string city;
+        std::string region;
+        std::string country;
+        std::string org = "No Data";
+        MetricDetails() = default;
+};
 
+class Metrics {
+    public:
+        std::map<std::string, int> ip;
+        std::map<std::string, MetricDetails> info;
+        std::map<std::string, std::set<std::string, std::greater<>>> dates;
+        inline static bool metricFlag = false;
+        Metrics() = default;
+
+        void setIP(const std::string& val) {
+            ip[val]++;
+        }
+        void setDates(const std::string& key, const std::string& val) {
+            dates[key].emplace(val);
+        }
+};
+
+void getStats(Stats& stats, crow::mustache::context& ctx);
+void parseResponse(Stats& stats, crow::mustache::context& ctx);
+void parseStats(Stats& stats, std::string& results, bool boolean, crow::mustache::context& ctx);
+std::string addCpuUsage(Stats& stats);
+void dockerHealth(Stats& stats);
+void dockerStats(Stats& stats, std::vector<DockerConfig>& config);
+void getMetrics(Metrics& metric);
+void parseIP(Metrics& metric);
 #endif

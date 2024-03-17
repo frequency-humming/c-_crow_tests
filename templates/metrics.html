@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>System Information</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  </head>
+  <body class="bg-gray-800 font-sans leading-normal tracking-normal">
+    <div class="container mx-auto p-4">
+      <h1 class="text-3xl mb-2 text-gray-300" style="text-align: center;">Server Metrics Port 443</h1>  
+    </div>  
+    <div class="grid grid-cols-3 gap-4">
+      {{#containers}}  
+        <div class="bg-gray-600 p-4 rounded shadow-lg">
+          <p class="text-gray-200">{{metric}}</p>
+          <p class="text-gray-200">Hostname: {{hostname}}</p>
+          <p class="text-gray-200">City: {{city}}</p> 
+          <p class="text-gray-200">Region: {{region}}</p> 
+          <p class="text-gray-200">Country: {{country}}</p> 
+          <p class="text-gray-200">Org: {{org}}</p>  
+          <p class="text-gray-200">Last Seen: {{date}}</p>
+        </div>
+        {{/containers}}
+    </div>
+  </body>
+</html>
