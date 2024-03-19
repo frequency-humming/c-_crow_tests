@@ -30,13 +30,30 @@ void getMetrics(Metrics& metric) {
     if (Metrics::metricFlag) {
         std::cout << date << std::endl;
         while (std::getline(file, line)) {
-            std::string temp = line.substr(0, 6);
             if (line.find(date) != std::string::npos) {
                 if (line.find("New HTTPS") != std::string::npos) {
                     std::smatch matches;
-                    if (std::regex_search(line, matches, pattern_IP) && matches.size() > 1) {   
-                        metric.setIP(matches[1].str());
-                        metric.setDates(matches[1].str(), line.substr(0, 15));  
+                    if (std::regex_search(line, matches, pattern_IP) && matches.size() > 1) { 
+                        auto key = metric.dates.find(matches[1].str());
+                        if(key != metric.dates.end()){              
+                            int key_date = std::stoi(key->second.substr(4,2));
+                            int line_date = std::stoi(line.substr(4,2));
+                            std::string key_time_str = key->second.substr(6,13);
+                            key_time_str.erase(std::remove(key_time_str.begin(),key_time_str.end(),':'),key_time_str.end());   
+                            int key_time = std::stoi(key_time_str);                            
+                            int line_time = std::stoi(line.substr(7,2)+line.substr(10,2)+line.substr(13,2));
+                            if(key_date < line_date){
+                                metric.setIP(matches[1].str());
+                                metric.setDates(matches[1].str(), line.substr(0, 15));
+                            }else if(key_date == line_date && key_time < line_time){
+                                metric.setIP(matches[1].str());
+                                metric.setDates(matches[1].str(), line.substr(0, 15));
+                            }       
+                        }else{
+                            //not found
+                            metric.setIP(matches[1].str());
+                            metric.setDates(matches[1].str(), line.substr(0, 15)); 
+                        }               
                     }
                 }
             }
